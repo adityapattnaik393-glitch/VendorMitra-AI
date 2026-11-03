@@ -13,9 +13,9 @@ documents and policies.
 
 - 🏛️ **RAG pipeline** — answers retrieved from official government PDFs
   (PM SVANidhi, Street Vendors Act, BHIM UPI, MSME schemes)
-- 🤖 **IBM Granite** — `ibm/granite-3-8b-instruct` via watsonx.ai
+- 🤖 **IBM Granite** — configurable chat model via watsonx.ai
 - 🌐 **Multilingual** — supports Hindi and English queries
-- ⚡ **FastAPI** backend with `/chat` and `/ingest` endpoints
+- ⚡ **FastAPI** backend with `/health`, `/granite/test`, `/chat`, and `/ingest`
 - 🗄️ **ChromaDB** vector store with multilingual sentence embeddings
 
 ---
@@ -48,7 +48,7 @@ street-vendor-agent/
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.12 (recommended for the pinned model/runtime wheels)
 - IBM Cloud account (Lite tier is sufficient)
 - watsonx.ai project with Granite model enabled
 
@@ -59,58 +59,36 @@ git clone <repo-url>
 cd street-vendor-agent/backend
 ```
 
-### 2. Create virtual environment
+### 2. Set up the backend (Windows PowerShell)
 
 ```bash
-python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # macOS / Linux
+Set-ExecutionPolicy -Scope Process Bypass
+.\setup.ps1
 ```
 
-### 3. Install dependencies
+The script recreates `backend/.venv`, installs CPU-only PyTorch first, then the
+backend requirements. It creates `.env` only if one does not already exist.
+
+### 3. Configure IBM credentials
+
+Edit `backend/.env` and set `IBM_API_KEY`, `IBM_PROJECT_ID`, and `IBM_REGION`.
+`IBM_MODEL_ID` defaults to `ibm/granite-4-h-small`; change it only if the
+preflight reports that the model is unavailable for your region/project.
+
+### 4. Check IBM access and start the backend
 
 ```bash
-pip install fastapi uvicorn requests python-dotenv
-pip install chromadb sentence-transformers
-pip install langchain-text-splitters docling
-```
-
-Or all at once:
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Configure credentials
-
-```bash
-copy .env.example .env   # Windows
-# cp .env.example .env   # macOS/Linux
-```
-
-Edit `.env` and fill in:
-
-```env
-IBM_API_KEY=your_ibm_api_key_here
-IBM_PROJECT_ID=your_watsonx_project_id_here
-IBM_REGION=us-south
-```
-
-Get your API key at https://cloud.ibm.com/iam/apikeys  
-Get your project ID from the watsonx.ai project settings page.
-
-### 5. Ingest government documents
-
-```bash
-# Step 1 — Convert PDFs to Markdown
+\.venv\Scripts\Activate.ps1
+python -m app.check_granite
 python -m app.ingest
-
-# Step 2 — Start the server
 uvicorn app.main:app --reload
-
-# Step 3 — Index chunks into ChromaDB (one-time)
-curl -X POST http://localhost:8000/ingest
 ```
+
+PDF conversion uses `pypdf` by default. For improved table/layout extraction,
+install the optional `pip install -r requirements-docling.txt` before ingestion.
+With the server running, check `http://127.0.0.1:8000/health`, then
+`http://127.0.0.1:8000/granite/test`, and call `POST /ingest` once to index the
+processed documents.
 
 ### 6. Ask a question
 
@@ -134,7 +112,9 @@ Response:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET  | `/`        | Health check |
+| GET  | `/`        | Service message |
+| GET  | `/health`  | IBM configuration and indexed chunk count |
+| GET  | `/granite/test` | Test a real IBM Granite chat request |
 | POST | `/ingest`  | Index all processed documents into ChromaDB |
 | POST | `/chat`    | Ask a vendor question; returns answer + sources |
 
@@ -159,7 +139,7 @@ Response:
 
 | Component | IBM Service |
 |-----------|-------------|
-| Language model | IBM Granite 3 8B Instruct (`ibm/granite-3-8b-instruct`) |
+| Language model | IBM Granite chat model (`IBM_MODEL_ID`, default `ibm/granite-4-h-small`) |
 | Platform | IBM watsonx.ai (IBM Cloud Lite) |
 | Auth | IBM IAM API Key |
 

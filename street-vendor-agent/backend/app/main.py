@@ -1,11 +1,12 @@
 from typing import Literal
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from app import granite
 from app.agent import ask_vendor_mitra
-from app.rag import ingest_documents
+from app.rag import indexed_chunks, ingest_documents
 
 app = FastAPI(title="VendorMitra AI")
 
@@ -45,10 +46,39 @@ def home():
     }
 
 
+@app.get("/health")
+def health():
+    """Quick status without calling IBM: config and indexed chunk count."""
+    problems = granite.config_problems()
+    try:
+        chunks = indexed_chunks()
+    except Exception as error:
+        chunks = f"error: {error}"
+    return {
+        "granite_configured": not problems,
+        "problems": problems,
+        "model": granite.IBM_MODEL_ID,
+        "region": granite.IBM_REGION,
+        "indexed_chunks": chunks,
+    }
+
+
+@app.get("/granite/test")
+def granite_test():
+    try:
+        answer = granite.test_granite()
+    except granite.GraniteError as error:
+        raise HTTPException(status_code=502, detail=str(error)) from error
+    return {"ok": True, "model": granite.IBM_MODEL_ID, "answer": answer}
+
+
 @app.post("/ingest")
 def ingest():
-    ingest_documents()
-    return {"message": "Documents indexed successfully"}
+    try:
+        chunks = ingest_documents()
+    except FileNotFoundError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    return {"message": "Documents indexed successfully", "chunks": chunks}
 
 
 @app.post("/chat")
@@ -58,8 +88,11 @@ def chat(request: ChatRequest):
         if request.vendor
         else None
     )
-    return ask_vendor_mitra(
-        request.question,
-        task=request.task,
-        vendor_profile=vendor_profile,
-    )
+    try:
+        return ask_vendor_mitra(
+            request.question,
+            task=request.task,
+            vendor_profile=vendor_profile,
+        )
+    except granite.GraniteError as error:
+        raise HTTPException(status_code=502, detail=str(error)) from error
