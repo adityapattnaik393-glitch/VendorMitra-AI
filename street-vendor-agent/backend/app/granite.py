@@ -34,7 +34,12 @@ def _get_iam_token() -> str:
     return token
 
 
-def generate_answer(question: str, context: str) -> str:
+def generate_answer(
+    question: str,
+    context: str,
+    task: str = "general",
+    vendor_context: str = "",
+) -> str:
     """
     Call IBM Granite via watsonx.ai /text/generation endpoint.
 
@@ -43,13 +48,31 @@ def generate_answer(question: str, context: str) -> str:
     """
     token = _get_iam_token()
 
-    prompt = f"""You are VendorMitra, an AI assistant that helps Indian street
-vendors and micro-entrepreneurs grow digitally. You provide practical
-advice on UPI setup, MSME schemes, digital onboarding, local SEO,
-QR codes, and government policies — grounded only in the context below.
-Answer in the same language the vendor uses. Be concise and actionable.
+    task_guidance = {
+        "business_profile": "Draft an accurate short business profile using only supplied vendor details.",
+        "upi_setup": "Give practical UPI and QR-code onboarding steps supported by the sources.",
+        "local_seo": "Suggest local listing and discoverability actions based on the stated location.",
+        "customer_engagement": "Suggest practical customer communication and repeat-visit ideas.",
+        "general": "Answer the vendor's question directly and offer relevant digitalization steps.",
+    }.get(task, "Answer the vendor's question directly.")
+    vendor_section = f"\nVendor profile:\n{vendor_context}\n" if vendor_context else ""
 
-Context:
+    prompt = f"""You are VendorMitra, an AI assistant that helps Indian street
+vendors and micro-entrepreneurs grow digitally. Provide concise, practical
+guidance for the requested task: {task}.
+
+Task focus: {task_guidance}
+{vendor_section}
+Use the retrieved context below as the only source for government policies,
+scheme eligibility, fees, dates, and other factual claims. Do not claim to have
+real-time access to government portals, fintech apps, commerce platforms, or
+consumer data. Do not invent local demand, pricing, geolocation, or business
+details. If sources do not support a current or location-specific claim, say so
+and suggest confirming it with the relevant official source. Use the preferred
+language when provided; otherwise answer in the same language as the question.
+Be concise and actionable.
+
+Retrieved context:
 {context}
 
 Vendor question: {question}
