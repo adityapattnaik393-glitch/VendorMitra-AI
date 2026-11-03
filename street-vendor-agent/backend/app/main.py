@@ -1,7 +1,9 @@
+from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from app import granite
@@ -9,6 +11,7 @@ from app.agent import ask_vendor_mitra
 from app.rag import indexed_chunks, ingest_documents
 
 app = FastAPI(title="VendorMitra AI")
+CHAT_PAGE = Path(__file__).with_name("chat.html")
 
 app.add_middleware(
     CORSMiddleware,
@@ -41,9 +44,7 @@ class ChatRequest(BaseModel):
 
 @app.get("/")
 def home():
-    return {
-        "message": "VendorMitra AI is running"
-    }
+    return FileResponse(CHAT_PAGE, media_type="text/html")
 
 
 @app.get("/health")

@@ -15,7 +15,7 @@ documents and policies.
   (PM SVANidhi, Street Vendors Act, BHIM UPI, MSME schemes)
 - 🤖 **IBM Granite** — configurable chat model via watsonx.ai
 - 🌐 **Multilingual** — supports Hindi and English queries
-- ⚡ **FastAPI** backend with `/health`, `/granite/test`, `/chat`, and `/ingest`
+- ⚡ **FastAPI** backend with a customer chat page at `/` and API routes for `/health`, `/granite/test`, `/chat`, and `/ingest`
 - 🗄️ **ChromaDB** vector store with multilingual sentence embeddings
 
 ---
@@ -24,10 +24,10 @@ documents and policies.
 
 ```
 street-vendor-agent/
-├── frontend/               # React / HTML chat UI (coming soon)
 ├── backend/
 │   ├── app/
 │   │   ├── main.py         # FastAPI app & routes
+│   │   ├── chat.html       # Customer chat page served at /
 │   │   ├── agent.py        # RAG → Granite orchestration
 │   │   ├── granite.py      # IBM watsonx.ai Granite client
 │   │   ├── rag.py          # ChromaDB ingest & retrieval
@@ -89,6 +89,9 @@ install the optional `pip install -r requirements-docling.txt` before ingestion.
 With the server running, check `http://127.0.0.1:8000/health`, then
 `http://127.0.0.1:8000/granite/test`, and call `POST /ingest` once to index the
 processed documents.
+
+Open `http://127.0.0.1:8000` in your browser to use the customer chat. Open
+`http://127.0.0.1:8000/docs` to try the API directly.
 
 ### 6. Ask a question
 
