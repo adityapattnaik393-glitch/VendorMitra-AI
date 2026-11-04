@@ -11,10 +11,10 @@ env/
 .env
 
 # ChromaDB persistent data
-chroma_db/
+backend/chroma_db/
 
 # Processed markdown (regenerate from raw PDFs)
-data/processed/
+backend/data/processed/
 
 # IDE
 .vscode/
