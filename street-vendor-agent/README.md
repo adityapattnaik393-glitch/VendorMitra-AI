@@ -6,15 +6,19 @@ uses IBM Granite on watsonx.ai to answer practical business questions.
 
 ## What it does
 
-- Answers questions using a ChromaDB knowledge base built from local PDFs.
+- Answers questions using a ChromaDB knowledge base built from source PDFs and
+  practical vendor guides.
 - Provides a responsive chat interface with English/Hindi response selection.
 - Keeps recent chat history in the current browser and restores it on refresh.
 - Saves the vendor profile and language selection in the browser. The assistant
   uses the saved profile details to personalize each response.
 - Automatically replies in Hindi when a question contains Devanagari text,
   even if English is selected. For Romanized Hindi/Hinglish, select Hindi.
-- Offers focused prompts for UPI setup, business profiles, local visibility,
-  customer engagement, and government schemes.
+- Generates ready-to-use vendor business profiles from saved details or
+  information in the first message; it does not need a PDF to do this writing.
+- Creates WhatsApp messages, signboard lines, and QR-payment poster copy.
+- Offers guidance for UPI setup, local visibility, customer engagement, and
+  government schemes.
 - Returns the filenames of retrieved source documents with each answer.
 
 The assistant uses one retrieve-then-answer pass. It does not browse the web,
@@ -24,6 +28,14 @@ sources.
 
 Edit vendor details from the person icon at the bottom of the sidebar and select **Save profile**
 to include them in future answers. Unsaved edits are not sent to the assistant.
+You can also try: "I sell fruit in Pune Camp. Write a business profile for my
+stall." VendorMitra uses the supplied details to draft the profile and offers
+to fill the profile form with the detected product and area. Review and save
+those details before reusing them in later chats.
+
+Choose **Create promotional materials** to generate a WhatsApp message,
+signboard line, and QR-payment poster copy. It uses placeholders for details
+you have not provided and never creates a payment QR code.
 
 ## Requirements
 
@@ -104,6 +116,13 @@ Markdown filename. Installing Docling alone does not guarantee that scanned
 pages will be recognized. Check the command output before relying on answers
 from a document.
 
+The processed Markdown folder also contains practical guides for vendor
+profiles/listings, local discoverability, produce pricing, customer engagement,
+promotional materials, and a dated PM SVANidhi dataset source. The PM SVANidhi
+page reports aggregate eligible applications **as of 2024-01-30**; it is not
+live data or an individual eligibility check. Answers cite the source date
+when that document is retrieved.
+
 ## Run and use
 
 Run the app from `backend/`:
@@ -172,6 +191,12 @@ the request uses the vendor profile language or defaults to `English`.
 Questions written in Devanagari are answered in Hindi regardless of this
 setting.
 
+The `task` values also include `business_profile` and
+`promotional_materials`. When `task` is `general`, clear natural-language
+requests to create a business profile or promotional copy are detected
+automatically. The response includes `vendor_profile` when profile details
+were provided or extracted from the message.
+
 ## Configuration and deployment
 
 | Variable | Default | Description |
@@ -201,6 +226,12 @@ Configure `CORS_ORIGINS` only when a frontend is hosted on another origin. Keep
   `PORT=8080 python -m app.main` on macOS/Linux.
 - **Hindi query is Romanized:** choose Hindi from the response-language menu;
   automatic detection is based on Devanagari characters.
+- **Profile answer only describes PDFs:** ask for a "business profile" or use
+  the profile suggestion; the writing task is generated from vendor details
+  and does not require retrieved policy documents.
+- **Location button shows coordinates:** device location is rounded and
+  obtained in-browser; replace it with a city or neighborhood for clearer
+  advice. No external reverse-geocoding service is called.
 
 ## Tests
 

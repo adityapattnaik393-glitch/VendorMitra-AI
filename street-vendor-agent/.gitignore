@@ -15,6 +15,13 @@ backend/chroma_db/
 
 # Processed markdown (regenerate from raw PDFs)
 backend/data/processed/
+!backend/data/processed/
+backend/data/processed/*.md
+!backend/data/processed/Customer Engagement for Street Vendors.md
+!backend/data/processed/Digital Business Profiles and Listings.md
+!backend/data/processed/PM SVANidhi State UT Eligible Applications 2023-24.md
+!backend/data/processed/Pricing for Fruit and Vegetable Vendors.md
+!backend/data/processed/Promotional Materials for Street Vendors.md
 
 # IDE
 .vscode/

@@ -15,11 +15,12 @@ guidance.
 
 ```text
 Browser
-  ├─ Chat UI (English/Hindi selector, profile, saved-chat sidebar)
+  ├─ Chat UI (English/Hindi selector, profile, saved-chat sidebar, location opt-in)
   ├─ Browser localStorage (chat history, profile, language preference)
   └─ POST /chat
        ├─ FastAPI validates question, task, profile, response language
        └─ app.agent
+            ├─ infer business-profile/promotion intent and extract first-message details
             ├─ app.rag: multilingual embedding → ChromaDB top-3 passages
             └─ app.granite: prompt + passages → IBM watsonx.ai chat endpoint
                   └─ answer + unique source filenames → Browser
@@ -42,6 +43,9 @@ Source PDFs → app.ingest → Markdown → POST /ingest
    of the UI selection. Otherwise, the chosen response language is passed into
    the system prompt. Hindi output is requested in Devanagari script.
 6. The API returns the answer and de-duplicated source filenames.
+7. Business-profile and promotion tasks generate vendor-facing copy from vendor
+   details; those creative-writing tasks do not depend on a matching PDF. The
+   API returns extracted profile fields so the UI can offer them for saving.
 
 The browser stores up to 40 recent conversations, the saved profile fields,
 and the selected language in localStorage. Profile edits are not sent to the
@@ -85,6 +89,15 @@ scanned document.
 
 ChromaDB uses a persistent directory at `backend/chroma_db/`. Re-running
 `POST /ingest` upserts chunks with stable document-based IDs.
+Documents may include a `Source date:` line; ingestion stores it with the
+vector metadata, and chat source labels carry that date through the response.
+The PM SVANidhi State/UT data document is explicitly dated **as of 2024-01-30**
+and is not treated as live data or individual eligibility guidance.
+
+Additional authored guides cover digital profiles and listings, pricing fruit
+and vegetables, customer engagement, and promotional copy. These provide
+practical writing help; platform rules and market prices still need current
+verification.
 
 ## Components
 
@@ -92,12 +105,12 @@ ChromaDB uses a persistent directory at `backend/chroma_db/`. Re-running
 |---|---|
 | `backend/app/main.py` | FastAPI routes, request validation, CORS configuration, server entry point |
 | `backend/app/chat.html` | Responsive bilingual chat UI |
-| `backend/app/agent.py` | Retrieve-then-answer orchestration and Hindi-script detection |
-| `backend/app/rag.py` | PDF Markdown chunking, embeddings, ChromaDB indexing and retrieval |
+| `backend/app/agent.py` | Task intent inference, first-message profile extraction, RAG-to-answer orchestration and Hindi-script detection |
+| `backend/app/rag.py` | Markdown chunking, dated source metadata, embeddings, ChromaDB indexing and retrieval |
 | `backend/app/ingest.py` | Convert source PDFs to Markdown and report extraction failures |
 | `backend/app/granite.py` | IBM IAM token handling and watsonx.ai chat requests |
 | `backend/app/check_granite.py` | Credential, model-availability, and live-call preflight |
-| `backend/tests/` | Unit tests for response language and Granite requests |
+| `backend/tests/` | Unit tests for profile extraction, response language, dated sources, and Granite requests |
 
 ## IBM integration
 
@@ -141,13 +154,16 @@ comma-separated allowlist.
 
 ## Limitations
 
-- Answers depend on extracted and indexed source content; an answer does not
-  guarantee that every source PDF was parsed successfully.
+-   Policy answers depend on extracted and indexed source content; an answer does
+  not guarantee that every source PDF was parsed successfully. Profile and
+  promotion copy is generated from user details rather than government sources.
 - Retrieval returns at most three chunks and does not browse live official
-  websites.
+  websites. The PM SVANidhi dataset is historical (as of 2024-01-30).
 - Hindi automatic language selection detects Devanagari text. Romanized Hindi
   follows the language selected in the UI.
 - Scheme rules and other time-sensitive information should be confirmed with
   the responsible official source.
-- The sidebar's schemes and tips actions submit focused questions to the same
-  chat endpoint; they are not separate data-backed product modules.
+- The "Use my location" button requests browser permission and fills rounded
+  coordinates locally. It does not send coordinates to an external
+  reverse-geocoding service; users should enter a city or neighborhood for
+  more useful location-specific advice.

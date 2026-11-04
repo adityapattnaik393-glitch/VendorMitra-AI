@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 # Resolve paths relative to this file so they work regardless of
 # the working directory uvicorn is launched from.
@@ -7,6 +8,7 @@ DB_PATH = str(_BACKEND_DIR / "chroma_db")
 PROCESSED_DIR = _BACKEND_DIR / "data" / "processed"
 
 EMBED_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+_SOURCE_DATE = re.compile(r"^Source date:\s*(.+)$", re.MULTILINE | re.IGNORECASE)
 _state: dict = {}
 
 
@@ -43,11 +45,10 @@ def ingest_documents() -> int:
     collection, model, splitter = _collection(), _model(), _splitter()
     total = 0
     for file in files:
-        chunks = [
-            chunk
-            for chunk in splitter.split_text(file.read_text(encoding="utf-8"))
-            if chunk.strip()
-        ]
+        document = file.read_text(encoding="utf-8")
+        date_match = _SOURCE_DATE.search(document)
+        source_date = date_match.group(1).strip() if date_match else None
+        chunks = [chunk for chunk in splitter.split_text(document) if chunk.strip()]
         if not chunks:
             print(f"Skipped {file.name}: no text extracted")
             continue
@@ -57,7 +58,10 @@ def ingest_documents() -> int:
             ids=[f"{file.stem}_{index}" for index in range(len(chunks))],
             documents=chunks,
             embeddings=vectors,
-            metadatas=[{"source": file.name} for _ in chunks],
+            metadatas=[
+                {"source": file.name, **({"source_date": source_date} if source_date else {})}
+                for _ in chunks
+            ],
         )
         total += len(chunks)
         print(f"Indexed {file.name}: {len(chunks)} chunks")
@@ -87,6 +91,7 @@ def retrieve_context(question, top_k=3):
         {
             "content": document,
             "source": meta["source"],
+            "source_date": meta.get("source_date"),
         }
         for document, meta in zip(documents, metadata)
     ]

@@ -45,6 +45,7 @@ class ChatRequest(BaseModel):
     task: Literal[
         "general",
         "business_profile",
+        "promotional_materials",
         "upi_setup",
         "local_seo",
         "customer_engagement",

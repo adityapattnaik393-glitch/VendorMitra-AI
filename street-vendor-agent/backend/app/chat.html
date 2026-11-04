@@ -77,6 +77,11 @@
     .profile-fields label { display: grid; gap: 5px; color: var(--muted); font-size: 11px; }
     .profile-fields input { width: 100%; min-height: 37px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: #fff; }
     .profile-fields .wide { grid-column: 1 / -1; }
+    .location-input-row { display: flex; gap: 7px; }
+    .location-input-row input { min-width: 0; flex: 1; }
+    .location-button { flex: 0 0 auto; padding: 0 9px; border: 1px solid #dce7dc; border-radius: 6px; color: var(--green); background: #fff; font-size: 10px; font-weight: 600; }
+    .location-button:disabled { cursor: wait; opacity: .65; }
+    .location-note { color: var(--muted); font-size: 10px; font-weight: 400; line-height: 1.4; }
     .profile-save-row { display: flex; grid-column: 1 / -1; align-items: center; justify-content: space-between; gap: 10px; }
     .profile-save-status { color: var(--muted); font-size: 11px; }
     .profile-save-status[data-state="error"] { color: var(--danger); }
@@ -193,7 +198,13 @@
         <div class="profile-fields">
           <div class="profile-title">Your profile</div>
           <label>Business type<input id="business-type" maxlength="120" placeholder="Fruit seller"></label>
-          <label>Location<input id="location" maxlength="160" placeholder="Pune Camp"></label>
+          <label>Location
+            <span class="location-input-row">
+              <input id="location" maxlength="160" placeholder="Pune Camp">
+              <button class="location-button" id="use-location" type="button">Use my location</button>
+            </span>
+            <span class="location-note" id="location-note">Uses rounded device coordinates only; enter your area name for clearer advice.</span>
+          </label>
           <label class="wide">Products, separated by commas<input id="products" maxlength="300" placeholder="Mangoes, bananas, oranges"></label>
           <label>Business name<input id="business-name" maxlength="120" placeholder="Optional"></label>
           <div class="profile-save-row">
@@ -226,7 +237,8 @@
         <p class="welcome-copy">Your smart assistant for business, schemes and growth!<br>Ask in English or Hindi. Replies follow your language choice.</p>
         <div class="suggestions">
           <button class="suggestion" data-task="upi_setup" data-prompt="How do I set up UPI payments for my stall?"><span class="suggestion-icon" aria-hidden="true">▦</span>Set up UPI</button>
-          <button class="suggestion" data-task="business_profile" data-prompt="Help me write a short profile for my business."><span class="suggestion-icon" aria-hidden="true">✎</span>Write my business profile</button>
+          <button class="suggestion" data-task="business_profile" data-prompt="Create a ready-to-use business profile for my stall using my saved vendor details."><span class="suggestion-icon" aria-hidden="true">✎</span>Write my business profile</button>
+          <button class="suggestion" data-task="promotional_materials" data-prompt="Create promotional materials for my business."><span class="suggestion-icon" aria-hidden="true">▤</span>Create promotional materials</button>
           <button class="suggestion" data-task="local_seo" data-prompt="How can local customers find my business online?"><span class="suggestion-icon" aria-hidden="true">●</span>Get found locally</button>
           <button class="suggestion" data-task="customer_engagement" data-prompt="Suggest ways to bring customers back to my stall."><span class="suggestion-icon" aria-hidden="true">♧</span>Bring customers back</button>
         </div>
@@ -266,6 +278,8 @@
     const historyStatus = document.querySelector("#history-status");
     const profileMenu = document.querySelector(".profile");
     const profileSaveStatus = document.querySelector("#profile-save-status");
+    const locationButton = document.querySelector("#use-location");
+    const locationNote = document.querySelector("#location-note");
     const historyKey = "vendormitra-chat-history-v1";
     const profileKey = "vendormitra-profile-v1";
     const languageKey = "vendormitra-language-v1";
@@ -438,6 +452,36 @@
       }
     }
 
+    function applyExtractedProfile(profile) {
+      if (!profile || typeof profile !== "object") return;
+      const fields = {
+        business_name: "business-name",
+        business_type: "business-type",
+        location: "location",
+      };
+      let changed = false;
+      for (const [key, id] of Object.entries(fields)) {
+        const value = profile[key];
+        const input = document.querySelector(`#${id}`);
+        if (typeof value === "string" && value.trim() && !input.value.trim()) {
+          input.value = value;
+          changed = true;
+        }
+      }
+      if (Array.isArray(profile.products) && profile.products.length) {
+        const input = document.querySelector("#products");
+        if (!input.value.trim()) {
+          input.value = profile.products.join(", ");
+          changed = true;
+        }
+      }
+      if (changed) {
+        profileSaveStatus.dataset.state = "unsaved";
+        profileSaveStatus.textContent = "Details found in your message — save to reuse them";
+        profileMenu.open = true;
+      }
+    }
+
     function addMessage(role, text, sources = []) {
       const message = document.createElement("article");
       message.className = `message ${role}`;
@@ -555,6 +599,7 @@
         if (typeof data.answer !== "string" || !data.answer.trim()) {
           throw new Error("The assistant returned an empty answer. Please try again.");
         }
+        applyExtractedProfile(data.vendor_profile);
         addMessage("assistant", data.answer, Array.isArray(data.sources) ? data.sources : []);
         saveChatMessage("assistant", data.answer, Array.isArray(data.sources) ? data.sources : []);
         attachmentText = "";
@@ -605,6 +650,33 @@
       });
     }
     document.querySelector("#save-profile").addEventListener("click", saveProfile);
+    locationButton.addEventListener("click", () => {
+      if (!navigator.geolocation) {
+        locationNote.textContent = "Location access is not available in this browser. Enter your city or area manually.";
+        return;
+      }
+      locationButton.disabled = true;
+      locationNote.textContent = "Waiting for your browser's location permission…";
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const latitude = position.coords.latitude.toFixed(3);
+          const longitude = position.coords.longitude.toFixed(3);
+          document.querySelector("#location").value = `Coordinates: ${latitude}, ${longitude}`;
+          profileSaveStatus.dataset.state = "unsaved";
+          profileSaveStatus.textContent = "Location filled — save profile to use it";
+          locationNote.textContent = "Rounded coordinates filled. Replace with your city or area for clearer advice.";
+          locationButton.disabled = false;
+        },
+        (error) => {
+          const message = error.code === error.PERMISSION_DENIED
+            ? "Location permission was denied. Enter your city or area manually."
+            : "Could not read your location. Check device settings or enter your area manually.";
+          locationNote.textContent = message;
+          locationButton.disabled = false;
+        },
+        { enableHighAccuracy: false, maximumAge: 60000, timeout: 10000 },
+      );
+    });
     languageSelect.addEventListener("change", () => {
       try {
         localStorage.setItem(languageKey, languageSelect.value);

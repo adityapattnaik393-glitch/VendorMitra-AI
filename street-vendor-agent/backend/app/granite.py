@@ -117,7 +117,22 @@ def generate_answer(
 ) -> str:
     """Call IBM Granite on watsonx.ai and return the answer text."""
     task_guidance = {
-        "business_profile": "Draft an accurate short business profile using only supplied vendor details.",
+        "business_profile": (
+            "Create a polished, ready-to-use vendor business profile from the supplied "
+            "vendor details and the first-message facts. This is a writing task, not a "
+            "policy lookup: do not merely summarize retrieved PDFs or say the sources "
+            "lack profile information. Include a short business name/headline, a warm "
+            "two-to-four sentence description, products, and the stated location when "
+            "available. Never invent missing business facts; omit them or use a clearly "
+            "labeled placeholder. If no vendor details are provided, ask a brief follow-up."
+        ),
+        "promotional_materials": (
+            "Create ready-to-use promotional copy using the vendor details. Provide a "
+            "short WhatsApp message, a signboard headline, and text for a QR-payment "
+            "poster. Keep each format clearly labeled and concise. Never invent discounts, "
+            "prices, phone numbers, QR/payment links, or claims; use an explicit placeholder "
+            "where a QR code or vendor-provided offer is needed."
+        ),
         "upi_setup": "Give practical UPI and QR-code onboarding steps supported by the sources.",
         "local_seo": "Suggest local listing and discoverability actions based on the stated location.",
         "customer_engagement": "Suggest practical customer communication and repeat-visit ideas.",
@@ -135,6 +150,10 @@ def generate_answer(
         "invent local demand, pricing, geolocation or business details. If the sources do "
         "not support a current or location-specific claim, say so and suggest confirming "
         "it with the relevant official source. "
+        "Creative writing such as vendor profiles and promotional copy may be generated "
+        "from the vendor's supplied details; do not require a PDF source for that writing. "
+        "Treat retrieved dates as authoritative: state their as-of/publication date when "
+        "answering time-sensitive questions, and never describe old data as real-time. "
         f"Write the entire answer in {preferred_language}. For Hindi, use natural Hindi "
         "in Devanagari script, even when the question is written in English. Do not "
         "switch languages unless the vendor asks you to. Be concise and actionable."
