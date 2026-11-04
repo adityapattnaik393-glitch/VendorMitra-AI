@@ -1,0 +1,2 @@
+# Optional: higher-quality PDF conversion with table and layout extraction.
+docling>=2.5.0

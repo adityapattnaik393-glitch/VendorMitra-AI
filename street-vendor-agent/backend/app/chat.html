@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173b32">
+  <title>VendorMitra | Business help</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #19332d;
+      --muted: #71817a;
+      --paper: #f5f5f0;
+      --white: #fffefa;
+      --line: #e2e7dd;
+      --green: #173b32;
+      --green-soft: #e7f0e9;
+      --lime: #d3e56e;
+      --danger: #a63e36;
+      font-family: "DM Sans", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-width: 320px;
+      height: 100vh;
+      height: 100dvh;
+      min-height: 520px;
+      margin: 0;
+      background-color: var(--paper);
+      background-image: radial-gradient(#dfe5da 0.65px, transparent 0.65px);
+      background-size: 15px 15px;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app-layout { display: grid; grid-template-columns: 218px minmax(0, 1fr); width: 100%; height: 100%; }
+    .sidebar { display: flex; flex-direction: column; min-height: 0; padding: 22px 14px 14px; border-right: 1px solid #dce8dd; background: linear-gradient(180deg, #edf6ed 0%, #e4f0e5 100%); }
+    .sidebar-brand { display: grid; justify-items: center; padding: 4px 8px 20px; border-bottom: 1px solid #d5e4d7; text-align: center; }
+    .sidebar-logo { display: grid; width: 52px; height: 52px; place-items: center; border: 1px solid #cfe1d1; border-radius: 17px; color: var(--green); background: #fff; font-size: 25px; box-shadow: 0 4px 12px rgba(39, 82, 55, .08); }
+    .sidebar-brand strong { margin-top: 9px; font-size: 14px; }
+    .sidebar-brand span { margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .sidebar-nav { display: grid; gap: 5px; padding-top: 15px; }
+    .side-link { display: flex; align-items: center; gap: 11px; min-height: 40px; padding: 0 11px; border: 0; border-radius: 10px; color: #50665a; background: transparent; font-size: 12px; font-weight: 600; text-align: left; }
+    .side-link:hover, .side-link.active { color: var(--green); background: #d7eddd; }
+    .side-icon { display: grid; width: 21px; place-items: center; font-size: 15px; }
+    .new-chat { display: flex; align-items: center; gap: 9px; min-height: 39px; padding: 0 11px; margin-top: 13px; border: 1px solid #cfe0d1; border-radius: 9px; color: var(--green); background: rgba(255,255,255,.72); font-size: 12px; font-weight: 700; text-align: left; }
+    .new-chat:hover { border-color: #9db8a2; background: #fff; }
+    .history-heading { padding: 19px 10px 8px; color: #71817a; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .chat-history { display: grid; align-content: start; gap: 3px; min-height: 0; padding: 0; margin: 0; overflow-y: auto; list-style: none; }
+    .history-item { min-width: 0; }
+    .history-button { display: block; width: 100%; padding: 9px 10px; overflow: hidden; border: 0; border-radius: 8px; color: #50665a; background: transparent; font-size: 12px; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+    .history-button:hover, .history-button.active { color: var(--green); background: #d7eddd; }
+    .history-empty { padding: 7px 10px; color: #829087; font-size: 11px; line-height: 1.5; }
+    .history-status { min-height: 16px; padding: 5px 8px 0; color: var(--danger); font-size: 10px; }
+    .shell { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; width: 100%; height: 100%; min-height: 520px; background: rgba(251, 250, 247, 0.97); }
+    .topbar { min-height: 70px; padding: 0 30px; border-bottom: 1px solid var(--line); background: rgba(251, 250, 247, 0.98); }
+    .topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; width: min(100%, 1440px); min-height: 70px; margin: 0 auto; }
+    .header-actions { display: flex; align-items: center; }
+    .page-title { color: var(--green); font-size: 15px; font-weight: 700; }
+    .header-actions { justify-content: flex-end; gap: 12px; }
+    .language-control { display: flex; align-items: center; gap: 7px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 999px; background: #fff; }
+    .language-control span { color: #64776b; font-size: 13px; }
+    .language-control select { min-height: 28px; padding: 0 18px 0 2px; border: 0; color: var(--ink); background: transparent; font-size: 11px; font-weight: 600; }
+    .profile { position: relative; }
+    .profile-sidebar { width: 100%; margin-top: auto; padding-top: 12px; border-top: 1px solid #d5e4d7; }
+    .profile summary { display: flex; align-items: center; gap: 11px; width: 100%; min-height: 42px; padding: 0 10px; border: 0; border-radius: 9px; color: #50665a; background: transparent; cursor: pointer; list-style: none; font-size: 12px; font-weight: 600; }
+    .profile summary::-webkit-details-marker { display: none; }
+    .profile summary:hover, .profile[open] summary { color: var(--green); background: #d7eddd; }
+    .profile-icon { width: 21px; height: 21px; flex: 0 0 21px; }
+    .profile-fields { position: absolute; z-index: 3; top: 44px; right: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 11px; width: min(440px, calc(100vw - 36px)); padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); box-shadow: 0 12px 35px rgba(24, 54, 43, 0.15); }
+    .profile-sidebar .profile-fields { top: auto; right: auto; bottom: 52px; left: 0; }
+    .profile-title { grid-column: 1 / -1; color: var(--green); font-size: 13px; font-weight: 700; }
+    .profile-fields label { display: grid; gap: 5px; color: var(--muted); font-size: 11px; }
+    .profile-fields input { width: 100%; min-height: 37px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: #fff; }
+    .profile-fields .wide { grid-column: 1 / -1; }
+    .profile-save-row { display: flex; grid-column: 1 / -1; align-items: center; justify-content: space-between; gap: 10px; }
+    .profile-save-status { color: var(--muted); font-size: 11px; }
+    .profile-save-status[data-state="error"] { color: var(--danger); }
+    .profile-save { min-height: 34px; padding: 0 15px; border: 0; border-radius: 7px; color: #fff; background: var(--green); font-size: 12px; font-weight: 700; }
+    .profile-save:hover { background: #285447; }
+    .conversation { display: flex; flex-direction: column; gap: 22px; width: min(940px, calc(100% - 64px)); min-height: 0; margin: 0 auto; padding: 28px 0 30px; overflow-y: auto; scroll-behavior: smooth; }
+    .welcome { display: flex; flex: 1 0 auto; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0 12px; text-align: center; animation: arrive 420ms ease-out both; }
+    .welcome[hidden] { display: none; }
+    .welcome-mark { display: grid; width: 74px; height: 74px; place-items: center; margin-bottom: 13px; border: 1px solid #cfe3d2; border-radius: 50%; color: #246144; background: #dff0df; font-size: 38px; box-shadow: 0 5px 15px rgba(40, 92, 56, .08); }
+    .eyebrow { display: inline-flex; align-items: center; min-height: 27px; padding: 0 12px; margin: 0 0 13px; border: 1px solid #e1e6df; border-radius: 999px; color: #638071; background: #f0f1ec; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    h1 { max-width: 760px; margin: 0; color: var(--green); font-family: "Fraunces", Georgia, serif; font-size: 42px; font-weight: 500; line-height: 1.08; }
+    .welcome-copy { margin: 8px 0 25px; color: var(--muted); font-size: 15px; }
+    .suggestions { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; }
+    .suggestion { display: inline-flex; align-items: center; gap: 8px; min-height: 39px; padding: 8px 13px; border: 1px solid #e8e8e2; border-radius: 999px; color: var(--green); background: var(--white); box-shadow: 0 1px 2px rgba(27, 49, 37, 0.04); font-size: 13px; transition: border-color 140ms ease, background 140ms ease, transform 140ms ease; }
+    .suggestion:hover { transform: translateY(-1px); border-color: #9db8a2; background: var(--green-soft); }
+    .suggestion-icon { color: #466d4e; font-size: 15px; line-height: 1; }
+    .message { display: flex; gap: 11px; animation: arrive 220ms ease-out both; }
+    .message.user { justify-content: flex-end; }
+    .avatar { display: grid; flex: 0 0 30px; width: 30px; height: 30px; place-items: center; border-radius: 9px; color: var(--green); background: var(--lime); font-weight: 700; }
+    .message-content { max-width: min(680px, calc(100% - 44px)); }
+    .message.user .message-content { max-width: 84%; }
+    .bubble { padding: 13px 16px; border: 1px solid var(--line); border-radius: 3px 13px 13px 13px; background: #fff; font-size: 14px; line-height: 1.65; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .message.user .bubble { border-color: var(--green); border-radius: 13px 3px 13px 13px; color: #fff; background: var(--green); }
+    .sources { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 9px; }
+    .sources-label { color: var(--muted); font-size: 11px; }
+    .source { padding: 4px 8px; border: 1px solid #dce5d8; border-radius: 5px; color: #50685a; background: #f4f7f0; font-size: 11px; }
+    .message.error .bubble { border-color: #edc8c0; color: var(--danger); background: #fff8f5; }
+    .typing { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+    .dots { display: inline-flex; gap: 3px; }
+    .dots i { width: 5px; height: 5px; border-radius: 50%; background: #75917e; animation: pulse 900ms infinite alternate; }
+    .dots i:nth-child(2) { animation-delay: 180ms; }
+    .dots i:nth-child(3) { animation-delay: 360ms; }
+    .composer-wrap { width: min(900px, calc(100% - 48px)); margin: 0 auto; padding: 0 0 15px; }
+    .suggested-row { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; padding: 0 0 8px; }
+    .suggested-label { display: inline-flex; align-items: center; gap: 5px; margin-right: 2px; color: var(--muted); font-size: 12px; }
+    .suggested-label span { color: #7eaa3a; font-size: 15px; }
+    .suggested-chip { min-height: 29px; padding: 4px 10px; border: 1px solid #e5e6df; border-radius: 999px; color: #53645b; background: #fff; font-size: 11px; }
+    .suggested-chip:hover { border-color: #a9bea9; background: var(--green-soft); }
+    .composer { display: grid; grid-template-columns: 1fr; gap: 0; padding: 0 10px 8px; border: 1px solid #e7e6df; border-radius: 16px; background: #fff; box-shadow: 0 3px 7px rgba(39, 49, 40, 0.12); }
+    .composer:focus-within { border-color: #c1d0c0; box-shadow: 0 4px 10px rgba(39, 49, 40, 0.13); }
+    .composer textarea { width: 100%; min-width: 0; min-height: 68px; max-height: 130px; padding: 15px 8px 10px; resize: none; border: 0; outline: 0; color: var(--ink); background: transparent; font-size: 14px; line-height: 1.5; }
+    .composer textarea::placeholder { color: #89968e; }
+    .composer-tools { display: flex; align-items: center; gap: 6px; min-height: 40px; padding-top: 6px; border-top: 1px solid #f0efe9; }
+    .tool-button { display: inline-grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; border: 0; border-radius: 8px; color: #61736a; background: transparent; font-size: 18px; }
+    .tool-button:hover { color: var(--green); background: #edf2eb; }
+    .file-name { max-width: 160px; overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .send { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: 8px; min-width: 84px; min-height: 38px; padding: 0 13px; margin-left: auto; border: 0; border-radius: 9px; color: #fff; background: var(--green); font-size: 13px; font-weight: 600; }
+    .send:hover:not(:disabled) { background: #285447; }
+    .send:disabled { cursor: wait; opacity: 0.65; }
+    .send-icon { font-size: 15px; }
+    .footnote { margin: 8px 0 0; color: #87948a; font-size: 10px; text-align: center; }
+    @keyframes arrive { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { from { opacity: 0.35; transform: translateY(0); } to { opacity: 1; transform: translateY(-2px); } }
+    @media (max-width: 760px) {
+      .app-layout { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+      .sidebar { flex-direction: row; align-items: center; gap: 8px; max-height: 66px; padding: 8px 12px; overflow-x: auto; border-right: 0; border-bottom: 1px solid #dce8dd; }
+      .sidebar-brand, .sidebar-nav, .history-heading, .history-status { display: none; }
+      .new-chat { flex: 0 0 auto; min-height: 34px; margin: 0; }
+      .chat-history { display: flex; flex: 1; gap: 5px; overflow-x: auto; overflow-y: hidden; }
+      .profile-sidebar { width: auto; margin: 0 0 0 auto; padding: 0; border: 0; }
+      .profile summary { width: 40px; min-height: 38px; justify-content: center; padding: 0; border: 1px solid #cfe0d1; border-radius: 50%; background: rgba(255,255,255,.72); }
+      .profile-label { display: none; }
+      .history-item { flex: 0 0 auto; max-width: 160px; }
+      .history-button { max-width: 160px; padding: 8px; }
+      .history-empty { flex: 0 0 auto; padding: 8px; white-space: nowrap; }
+      .topbar { min-height: 104px; padding: 8px 16px; }
+      .topbar-inner { min-height: 86px; flex-wrap: wrap; gap: 7px 12px; }
+      .header-actions { width: 100%; justify-content: space-between; gap: 8px; }
+      .profile-fields { position: fixed; top: 115px; right: 12px; }
+      .conversation { width: calc(100% - 32px); padding: 22px 0 24px; gap: 17px; }
+      .welcome { padding-top: 8px; }
+      h1 { font-size: 37px; }
+      .welcome-copy { margin-bottom: 19px; font-size: 13px; }
+      .suggestions { gap: 7px; }
+      .suggestion { min-height: 35px; padding: 7px 10px; font-size: 11px; }
+      .composer-wrap { width: calc(100% - 28px); padding-bottom: 10px; }
+      .composer textarea { min-height: 59px; font-size: 13px; }
+      .file-name { max-width: 85px; }
+      .tool-button { flex-basis: 30px; width: 30px; }
+      .send { min-width: 42px; width: 42px; padding: 0; }
+      .send-label { display: none; }
+      .footnote { font-size: 9px; }
+    }
+    @media (max-width: 390px) {
+      .suggested-label { width: 100%; }
+      .language-control { padding: 4px 7px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" aria-label="Main navigation">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo" aria-hidden="true">🏪</div>
+        <strong>VendorMitra AI</strong>
+        <span>Your Business Growth Companion</span>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="side-link active" type="button" data-nav="chat"><span class="side-icon" aria-hidden="true">✦</span>AI Mitra</button>
+      </nav>
+      <button class="new-chat" id="new-chat" type="button"><span aria-hidden="true">＋</span>New chat</button>
+      <div class="history-heading">Recent chats</div>
+      <ul class="chat-history" id="chat-history" aria-label="Previous chats"></ul>
+      <div class="history-status" id="history-status" aria-live="polite"></div>
+      <details class="profile profile-sidebar">
+        <summary aria-label="Open profile" title="Profile">
+          <svg class="profile-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" fill="currentColor"></circle>
+            <path d="M4.5 21a7.5 7.5 0 0 1 15 0" fill="currentColor"></path>
+          </svg>
+          <span class="profile-label">Profile</span>
+        </summary>
+        <div class="profile-fields">
+          <div class="profile-title">Your profile</div>
+          <label>Business type<input id="business-type" maxlength="120" placeholder="Fruit seller"></label>
+          <label>Location<input id="location" maxlength="160" placeholder="Pune Camp"></label>
+          <label class="wide">Products, separated by commas<input id="products" maxlength="300" placeholder="Mangoes, bananas, oranges"></label>
+          <label>Business name<input id="business-name" maxlength="120" placeholder="Optional"></label>
+          <div class="profile-save-row">
+            <span class="profile-save-status" id="profile-save-status" role="status" aria-live="polite"></span>
+            <button class="profile-save" id="save-profile" type="button">Save profile</button>
+          </div>
+        </div>
+      </details>
+    </aside>
+    <main class="shell">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="page-title">AI Mitra <span aria-hidden="true">✦</span></div>
+        <div class="header-actions">
+          <label class="language-control" for="response-language">
+            <span aria-hidden="true">◎</span>
+            <select id="response-language" aria-label="Response language">
+              <option value="English">English</option>
+              <option value="Hindi">हिन्दी</option>
+            </select>
+          </label>
+          <input id="task" type="hidden" value="general">
+        </div>
+      </div>
+    </header>
+    <section class="conversation" id="conversation" aria-label="Conversation" aria-live="polite">
+      <div class="welcome" id="welcome">
+        <div class="welcome-mark" aria-hidden="true">🤖</div>
+        <h1>Hello! I'm AI Mitra 👋</h1>
+        <p class="welcome-copy">Your smart assistant for business, schemes and growth!<br>Ask in English or Hindi. Replies follow your language choice.</p>
+        <div class="suggestions">
+          <button class="suggestion" data-task="upi_setup" data-prompt="How do I set up UPI payments for my stall?"><span class="suggestion-icon" aria-hidden="true">▦</span>Set up UPI</button>
+          <button class="suggestion" data-task="business_profile" data-prompt="Help me write a short profile for my business."><span class="suggestion-icon" aria-hidden="true">✎</span>Write my business profile</button>
+          <button class="suggestion" data-task="local_seo" data-prompt="How can local customers find my business online?"><span class="suggestion-icon" aria-hidden="true">●</span>Get found locally</button>
+          <button class="suggestion" data-task="customer_engagement" data-prompt="Suggest ways to bring customers back to my stall."><span class="suggestion-icon" aria-hidden="true">♧</span>Bring customers back</button>
+        </div>
+      </div>
+    </section>
+    <div class="composer-wrap">
+      <div class="suggested-row" aria-label="Suggested topics">
+        <span class="suggested-label"><span aria-hidden="true">✦</span> Suggested:</span>
+        <button class="suggested-chip" data-task="general" data-prompt="What is the PM SVANidhi loan and how can I apply?">PM SVANidhi Loan</button>
+        <button class="suggested-chip" data-task="customer_engagement" data-prompt="How can I keep a simple digital record of daily sales and customers?">Digital Khata Guide</button>
+        <button class="suggested-chip" data-task="general" data-prompt="What food safety registration or license may my food stall need?">FSSAI License Help</button>
+      </div>
+      <form class="composer" id="composer">
+        <textarea id="question" rows="1" maxlength="4000" placeholder="Ask VendorMitra anything... (e.g., 'How do I accept UPI payments?' or 'दुकान की बिक्री कैसे बढ़ाएं?')" aria-label="Your message" required></textarea>
+        <div class="composer-tools">
+          <button class="tool-button" id="voice" type="button" title="Dictate a message" aria-label="Dictate a message">♩</button>
+          <button class="tool-button" id="attach" type="button" title="Attach a text or Markdown file" aria-label="Attach a text or Markdown file">⌁</button>
+          <input id="attachment" type="file" accept=".txt,.md,text/plain,text/markdown" hidden>
+          <span class="file-name" id="file-name" aria-live="polite"></span>
+          <button class="send" id="send" type="submit" aria-label="Send message"><span class="send-label">Send</span><span class="send-icon" aria-hidden="true">&#8593;</span></button>
+        </div>
+      </form>
+      <p class="footnote">Check current scheme details with the relevant official source.</p>
+    </div>
+    </main>
+  </div>
+  <script>
+    const composer = document.querySelector("#composer");
+    const questionInput = document.querySelector("#question");
+    const sendButton = document.querySelector("#send");
+    const conversation = document.querySelector("#conversation");
+    const welcome = document.querySelector("#welcome");
+    const attachmentInput = document.querySelector("#attachment");
+    const attachmentName = document.querySelector("#file-name");
+    const languageSelect = document.querySelector("#response-language");
+    const historyList = document.querySelector("#chat-history");
+    const historyStatus = document.querySelector("#history-status");
+    const profileMenu = document.querySelector(".profile");
+    const profileSaveStatus = document.querySelector("#profile-save-status");
+    const historyKey = "vendormitra-chat-history-v1";
+    const profileKey = "vendormitra-profile-v1";
+    const languageKey = "vendormitra-language-v1";
+    let savedChats = loadChats();
+    let currentChatId = null;
+    let savedProfile = {};
+    let attachmentText = "";
+
+    function loadChats() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(historyKey) || "[]");
+        return Array.isArray(stored)
+          ? stored.filter((chat) => (
+            chat &&
+            typeof chat.id === "string" &&
+            typeof chat.title === "string" &&
+            Array.isArray(chat.messages)
+          ))
+          : [];
+      } catch (error) {
+        console.error("Could not load saved chats.", error);
+        document.querySelector("#history-status").textContent = "Saved chats could not be loaded.";
+        return [];
+      }
+    }
+
+    function persistChats() {
+      try {
+        localStorage.setItem(historyKey, JSON.stringify(savedChats.slice(0, 40)));
+        historyStatus.textContent = "";
+      } catch (error) {
+        console.error("Could not save chat history.", error);
+        historyStatus.textContent = "Chat history could not be saved in this browser.";
+      }
+    }
+
+    function renderHistory() {
+      historyList.replaceChildren();
+      if (!savedChats.length) {
+        const empty = document.createElement("li");
+        empty.className = "history-empty";
+        empty.textContent = "Your previous chats will appear here.";
+        historyList.append(empty);
+        return;
+      }
+
+      const recentChats = [...savedChats].sort((a, b) => b.updatedAt - a.updatedAt);
+      for (const chat of recentChats) {
+        const item = document.createElement("li");
+        item.className = "history-item";
+        const button = document.createElement("button");
+        button.className = "history-button";
+        button.type = "button";
+        button.textContent = chat.title || "New chat";
+        button.title = chat.title || "New chat";
+        button.classList.toggle("active", chat.id === currentChatId);
+        button.setAttribute("aria-current", chat.id === currentChatId ? "true" : "false");
+        button.addEventListener("click", () => openChat(chat.id));
+        item.append(button);
+        historyList.append(item);
+      }
+    }
+
+    function saveChatMessage(role, text, sources = []) {
+      let chat = savedChats.find((item) => item.id === currentChatId);
+      if (!chat) {
+        currentChatId = globalThis.crypto?.randomUUID
+          ? globalThis.crypto.randomUUID()
+          : `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        chat = {
+          id: currentChatId,
+          title: role === "user" ? text.slice(0, 48) : "New chat",
+          updatedAt: Date.now(),
+          messages: [],
+        };
+        savedChats.unshift(chat);
+      }
+      chat.messages.push({ role, text, sources, createdAt: Date.now() });
+      if (role === "user" && chat.messages.filter((message) => message.role === "user").length === 1) {
+        chat.title = text.replace(/\s+/g, " ").slice(0, 48) || "New chat";
+      }
+      chat.updatedAt = Date.now();
+      savedChats = savedChats
+        .sort((a, b) => b.updatedAt - a.updatedAt)
+        .slice(0, 40);
+      persistChats();
+      renderHistory();
+    }
+
+    function openChat(chatId) {
+      if (sendButton.disabled) return;
+      const chat = savedChats.find((item) => item.id === chatId);
+      if (!chat) return;
+      currentChatId = chat.id;
+      conversation.replaceChildren(welcome);
+      welcome.hidden = chat.messages.length > 0;
+      for (const message of chat.messages) {
+        if (typeof message.text === "string" && ["user", "assistant"].includes(message.role)) {
+          addMessage(message.role, message.text, Array.isArray(message.sources) ? message.sources : []);
+        }
+      }
+      if (chat.messages.length) conversation.scrollTop = conversation.scrollHeight;
+      document.querySelectorAll(".side-link").forEach((item) => {
+        item.classList.toggle("active", item.dataset.nav === "chat");
+      });
+      renderHistory();
+    }
+
+    function startNewChat() {
+      if (sendButton.disabled) return;
+      currentChatId = null;
+      conversation.replaceChildren(welcome);
+      welcome.hidden = false;
+      questionInput.value = "";
+      questionInput.style.height = "auto";
+      attachmentText = "";
+      attachmentName.textContent = "";
+      attachmentInput.value = "";
+      document.querySelector("#task").value = "general";
+      profileMenu.open = false;
+      document.querySelectorAll(".side-link").forEach((item) => {
+        item.classList.toggle("active", item.dataset.nav === "chat");
+      });
+      renderHistory();
+      questionInput.focus();
+    }
+
+    function loadProfile() {
+      try {
+        const profile = JSON.parse(localStorage.getItem(profileKey) || "{}");
+        for (const key of ["business-type", "location", "products", "business-name"]) {
+          const value = profile[key];
+          if (typeof value === "string") document.querySelector(`#${key}`).value = value;
+        }
+        savedProfile = currentProfileValues();
+        profileSaveStatus.textContent = Object.values(savedProfile).some(Boolean) ? "Saved" : "No saved details";
+      } catch (error) {
+        console.error("Could not load saved profile.", error);
+        historyStatus.textContent = "Profile details could not be loaded.";
+      }
+      try {
+        const language = localStorage.getItem(languageKey);
+        if (language === "English" || language === "Hindi") languageSelect.value = language;
+      } catch (error) {
+        console.error("Could not load saved language preference.", error);
+      }
+    }
+
+    function currentProfileValues() {
+      return Object.fromEntries(
+        ["business-type", "location", "products", "business-name"].map((key) => [
+          key,
+          document.querySelector(`#${key}`).value,
+        ]),
+      );
+    }
+
+    function saveProfile() {
+      const profile = currentProfileValues();
+      try {
+        localStorage.setItem(profileKey, JSON.stringify(profile));
+        savedProfile = profile;
+        profileSaveStatus.dataset.state = "saved";
+        profileSaveStatus.textContent = "Saved — Mitra will use these details";
+        historyStatus.textContent = "";
+      } catch (error) {
+        console.error("Could not save profile details.", error);
+        profileSaveStatus.dataset.state = "error";
+        profileSaveStatus.textContent = "Could not save. Please try again.";
+      }
+    }
+
+    function addMessage(role, text, sources = []) {
+      const message = document.createElement("article");
+      message.className = `message ${role}`;
+      const content = document.createElement("div");
+      content.className = "message-content";
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = text;
+      content.append(bubble);
+      if (sources.length) {
+        const sourceList = document.createElement("div");
+        sourceList.className = "sources";
+        const label = document.createElement("span");
+        label.className = "sources-label";
+        label.textContent = "Sources";
+        sourceList.append(label);
+        for (const source of sources) {
+          const item = document.createElement("span");
+          item.className = "source";
+          item.textContent = source;
+          sourceList.append(item);
+        }
+        content.append(sourceList);
+      }
+      if (role === "assistant" || role === "error") {
+        const avatar = document.createElement("span");
+        avatar.className = "avatar";
+        avatar.setAttribute("aria-hidden", "true");
+        avatar.textContent = "V";
+        message.append(avatar);
+      }
+      message.append(content);
+      conversation.append(message);
+      conversation.scrollTop = conversation.scrollHeight;
+      return message;
+    }
+
+    function addTyping() {
+      const typing = document.createElement("div");
+      typing.className = "message assistant";
+      typing.innerHTML = '<span class="avatar" aria-hidden="true">V</span><div class="typing">Thinking <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>';
+      conversation.append(typing);
+      conversation.scrollTop = conversation.scrollHeight;
+      return typing;
+    }
+
+    function profileFromForm() {
+      const products = (savedProfile.products || "").split(",").map((item) => item.trim()).filter(Boolean).slice(0, 20);
+      const vendor = {
+        business_name: (savedProfile["business-name"] || "").trim(),
+        business_type: (savedProfile["business-type"] || "").trim(),
+        products,
+        location: (savedProfile.location || "").trim(),
+        preferred_language: languageSelect.value,
+      };
+      return Object.fromEntries(Object.entries(vendor).filter(([, value]) => Array.isArray(value) ? value.length : value));
+    }
+
+    function formatErrorDetail(detail) {
+      if (typeof detail === "string") return detail;
+      if (Array.isArray(detail)) {
+        return detail.map((item) => item.msg || JSON.stringify(item)).join("; ");
+      }
+      return "The server returned an unexpected error.";
+    }
+
+    async function sendQuestion(question) {
+      const trimmed = question.trim();
+      if (!trimmed || sendButton.disabled) return;
+      const requestQuestion = attachmentText ? `${trimmed}\n\nAttached notes (${attachmentName.textContent}):\n${attachmentText}` : trimmed;
+      if (requestQuestion.length > 4000) {
+        addMessage("error", "This message and attachment are too long. Shorten them and try again.");
+        return;
+      }
+      welcome.hidden = true;
+      addMessage("user", trimmed);
+      saveChatMessage("user", trimmed);
+      questionInput.value = "";
+      questionInput.style.height = "auto";
+      sendButton.disabled = true;
+      const typing = addTyping();
+      try {
+        let response;
+        try {
+          response = await fetch("/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              question: requestQuestion,
+              response_language: languageSelect.value,
+              task: document.querySelector("#task").value,
+              vendor: profileFromForm(),
+            }),
+          });
+        } catch {
+          throw new Error("Could not reach VendorMitra. Check that the backend is running, then try again.");
+        }
+        const payload = await response.json().catch(() => ({
+          detail: "The server returned an unreadable response. Please try again.",
+        }));
+        const data = payload && typeof payload === "object"
+          ? payload
+          : { detail: "The server returned an unexpected response." };
+        typing.remove();
+        if (!response.ok) {
+          const detail = formatErrorDetail(data.detail);
+          if (response.status === 429 || /HTTP 429|consumption_limit_reached/i.test(detail)) {
+            throw new Error("VendorMitra is busy right now. Please wait a moment, then try again.");
+          }
+          if (response.status === 502) {
+            throw new Error(`The AI service could not answer: ${detail}`);
+          }
+          throw new Error(`Request failed (${response.status}): ${detail}`);
+        }
+        if (typeof data.answer !== "string" || !data.answer.trim()) {
+          throw new Error("The assistant returned an empty answer. Please try again.");
+        }
+        addMessage("assistant", data.answer, Array.isArray(data.sources) ? data.sources : []);
+        saveChatMessage("assistant", data.answer, Array.isArray(data.sources) ? data.sources : []);
+        attachmentText = "";
+        attachmentName.textContent = "";
+        attachmentInput.value = "";
+      } catch (error) {
+        typing.remove();
+        const message = error instanceof Error ? error.message : "Connection problem. Please try again.";
+        addMessage("error", message);
+      } finally {
+        sendButton.disabled = false;
+        questionInput.focus();
+      }
+    }
+
+    composer.addEventListener("submit", (event) => {
+      event.preventDefault();
+      sendQuestion(questionInput.value);
+    });
+    questionInput.addEventListener("input", () => {
+      questionInput.style.height = "auto";
+      questionInput.style.height = `${Math.min(questionInput.scrollHeight, 130)}px`;
+    });
+    questionInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        composer.requestSubmit();
+      }
+    });
+    document.querySelectorAll(".suggestion, .suggested-chip").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelector("#task").value = button.dataset.task;
+        sendQuestion(button.dataset.prompt);
+      });
+    });
+    document.querySelectorAll(".side-link").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".side-link").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        questionInput.focus();
+      });
+    });
+    document.querySelector("#new-chat").addEventListener("click", startNewChat);
+    for (const id of ["business-type", "location", "products", "business-name"]) {
+      document.querySelector(`#${id}`).addEventListener("input", () => {
+        profileSaveStatus.dataset.state = "unsaved";
+        profileSaveStatus.textContent = "Unsaved changes";
+      });
+    }
+    document.querySelector("#save-profile").addEventListener("click", saveProfile);
+    languageSelect.addEventListener("change", () => {
+      try {
+        localStorage.setItem(languageKey, languageSelect.value);
+      } catch (error) {
+        console.error("Could not save language preference.", error);
+        historyStatus.textContent = "Language preference could not be saved in this browser.";
+      }
+    });
+    document.querySelector("#attach").addEventListener("click", () => attachmentInput.click());
+    attachmentInput.addEventListener("change", async () => {
+      const file = attachmentInput.files[0];
+      if (!file) return;
+      if (file.size > 32000) {
+        addMessage("error", "Attachments must be smaller than 32 KB.");
+        attachmentInput.value = "";
+        return;
+      }
+      try {
+        attachmentText = await file.text();
+        attachmentName.textContent = file.name;
+      } catch {
+        addMessage("error", "That file could not be read. Try a plain text or Markdown file.");
+        attachmentInput.value = "";
+      }
+    });
+    document.querySelector("#voice").addEventListener("click", () => {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        addMessage("error", "Voice input is not supported in this browser. You can type your message instead.");
+        return;
+      }
+      const recognition = new SpeechRecognition();
+      recognition.lang = languageSelect.value === "Hindi" ? "hi-IN" : "en-IN";
+      recognition.interimResults = false;
+      recognition.onresult = (event) => {
+        questionInput.value = `${questionInput.value} ${event.results[0][0].transcript}`.trim();
+        questionInput.dispatchEvent(new Event("input"));
+        questionInput.focus();
+      };
+      recognition.onerror = (event) => addMessage("error", `Voice input failed (${event.error}). Check microphone permission and try again.`);
+      try {
+        recognition.start();
+      } catch (error) {
+        addMessage("error", `Voice input could not start: ${error.message}`);
+      }
+    });
+    loadProfile();
+    renderHistory();
+    if (savedChats.length) {
+      const latestChat = [...savedChats].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+      openChat(latestChat.id);
+    } else {
+      startNewChat();
+    }
+  </script>
+</body>
+</html>

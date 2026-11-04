@@ -1,22 +1,10 @@
-# ─── Web framework ───────────────────────────────────────────────────────────
-fastapi==0.111.0
-uvicorn[standard]==0.29.0
-pydantic==2.7.1
-
-# ─── HTTP client (IBM IAM token + watsonx calls) ─────────────────────────────
-requests==2.32.3
-
-# ─── Environment variables ───────────────────────────────────────────────────
-python-dotenv==1.0.1
-
-# ─── PDF ingestion ───────────────────────────────────────────────────────────
-docling==2.5.0
-
-# ─── Embeddings ──────────────────────────────────────────────────────────────
-sentence-transformers==3.0.1
-
-# ─── Vector store ────────────────────────────────────────────────────────────
-chromadb==0.5.3
-
-# ─── Text splitting ──────────────────────────────────────────────────────────
-langchain-text-splitters==0.2.2
+# Core runtime. Use Python 3.12; install CPU-only PyTorch first via setup.ps1.
+fastapi>=0.111
+uvicorn[standard]>=0.29
+pydantic>=2.7
+requests>=2.32
+python-dotenv>=1.0
+chromadb>=0.5.3
+sentence-transformers>=3.0.1
+langchain-text-splitters>=0.2.2
+pypdf>=4.0
