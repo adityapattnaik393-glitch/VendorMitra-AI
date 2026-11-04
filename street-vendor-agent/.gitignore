@@ -1,4 +1,4 @@
-﻿# Byte-compiled / optimized / DLL files
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 
@@ -7,7 +7,7 @@ venv/
 .venv/
 env/
 
-# Environment secrets — NEVER commit
+# Environment secrets - NEVER commit
 .env
 
 # ChromaDB persistent data
