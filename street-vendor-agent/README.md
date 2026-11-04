@@ -8,6 +8,9 @@ uses IBM Granite on watsonx.ai to answer practical business questions.
 
 - Answers questions using a ChromaDB knowledge base built from local PDFs.
 - Provides a responsive chat interface with English/Hindi response selection.
+- Keeps recent chat history in the current browser and restores it on refresh.
+- Saves the vendor profile and language selection in the browser. The assistant
+  uses the saved profile details to personalize each response.
 - Automatically replies in Hindi when a question contains Devanagari text,
   even if English is selected. For Romanized Hindi/Hinglish, select Hindi.
 - Offers focused prompts for UPI setup, business profiles, local visibility,
@@ -18,6 +21,9 @@ The assistant uses one retrieve-then-answer pass. It does not browse the web,
 call external business tools, or verify changing scheme details in real time.
 Confirm current eligibility, fees, dates, and application steps with official
 sources.
+
+Edit vendor details from the person icon at the bottom of the sidebar and select **Save profile**
+to include them in future answers. Unsaved edits are not sent to the assistant.
 
 ## Requirements
 

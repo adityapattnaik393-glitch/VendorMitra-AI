@@ -47,35 +47,41 @@
     .side-link { display: flex; align-items: center; gap: 11px; min-height: 40px; padding: 0 11px; border: 0; border-radius: 10px; color: #50665a; background: transparent; font-size: 12px; font-weight: 600; text-align: left; }
     .side-link:hover, .side-link.active { color: var(--green); background: #d7eddd; }
     .side-icon { display: grid; width: 21px; place-items: center; font-size: 15px; }
-    .sidebar-art { display: grid; flex: 1; align-content: end; justify-items: center; min-height: 120px; padding-bottom: 12px; overflow: hidden; }
-    .cart-illustration { display: grid; width: 126px; height: 105px; place-items: center; border: 1px solid #d2e3d4; border-radius: 54% 46% 18px 18px; color: #235a41; background: radial-gradient(circle at 50% 34%, #fff 0 25%, transparent 26%), linear-gradient(165deg, #d5ebd7 0 55%, #c4dfca 56%); font-size: 43px; }
-    .sidebar-caption { color: #65806c; font-size: 10px; text-align: center; }
+    .new-chat { display: flex; align-items: center; gap: 9px; min-height: 39px; padding: 0 11px; margin-top: 13px; border: 1px solid #cfe0d1; border-radius: 9px; color: var(--green); background: rgba(255,255,255,.72); font-size: 12px; font-weight: 700; text-align: left; }
+    .new-chat:hover { border-color: #9db8a2; background: #fff; }
+    .history-heading { padding: 19px 10px 8px; color: #71817a; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .chat-history { display: grid; align-content: start; gap: 3px; min-height: 0; padding: 0; margin: 0; overflow-y: auto; list-style: none; }
+    .history-item { min-width: 0; }
+    .history-button { display: block; width: 100%; padding: 9px 10px; overflow: hidden; border: 0; border-radius: 8px; color: #50665a; background: transparent; font-size: 12px; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+    .history-button:hover, .history-button.active { color: var(--green); background: #d7eddd; }
+    .history-empty { padding: 7px 10px; color: #829087; font-size: 11px; line-height: 1.5; }
+    .history-status { min-height: 16px; padding: 5px 8px 0; color: var(--danger); font-size: 10px; }
     .shell { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; width: 100%; height: 100%; min-height: 520px; background: rgba(251, 250, 247, 0.97); }
     .topbar { min-height: 70px; padding: 0 30px; border-bottom: 1px solid var(--line); background: rgba(251, 250, 247, 0.98); }
     .topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; width: min(100%, 1440px); min-height: 70px; margin: 0 auto; }
-    .brand, .header-actions { display: flex; align-items: center; }
-    .brand { flex: 0 0 auto; gap: 12px; }
-    .brand-mark { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 12px; color: var(--green); background: var(--lime); font-size: 19px; font-weight: 700; }
-    .brand-name { font-size: 18px; font-weight: 700; }
-    .brand-note { margin-top: 2px; color: var(--muted); font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; }
-    .brand-pill { padding: 4px 8px; border-radius: 999px; color: #53635b; background: #e9eee7; font-size: 9px; font-weight: 700; letter-spacing: 0.07em; }
+    .header-actions { display: flex; align-items: center; }
     .page-title { color: var(--green); font-size: 15px; font-weight: 700; }
     .header-actions { justify-content: flex-end; gap: 12px; }
     .language-control { display: flex; align-items: center; gap: 7px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 999px; background: #fff; }
     .language-control span { color: #64776b; font-size: 13px; }
     .language-control select { min-height: 28px; padding: 0 18px 0 2px; border: 0; color: var(--ink); background: transparent; font-size: 11px; font-weight: 600; }
-    .task-control { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; }
-    .task-control label { color: var(--muted); font-size: 12px; white-space: nowrap; }
-    .task-control select { min-height: 30px; max-width: 190px; padding: 0 24px 0 4px; border: 0; color: var(--ink); background: transparent; font-size: 13px; font-weight: 600; }
     .profile { position: relative; }
-    .profile summary { color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer; list-style: none; white-space: nowrap; }
+    .profile-sidebar { width: 100%; margin-top: auto; padding-top: 12px; border-top: 1px solid #d5e4d7; }
+    .profile summary { display: flex; align-items: center; gap: 11px; width: 100%; min-height: 42px; padding: 0 10px; border: 0; border-radius: 9px; color: #50665a; background: transparent; cursor: pointer; list-style: none; font-size: 12px; font-weight: 600; }
     .profile summary::-webkit-details-marker { display: none; }
-    .profile summary::after { content: "⌄"; padding-left: 6px; }
-    .profile[open] summary::after { content: "⌃"; }
-    .profile-fields { position: absolute; z-index: 3; top: 31px; right: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 11px; width: min(440px, calc(100vw - 36px)); padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); box-shadow: 0 12px 35px rgba(24, 54, 43, 0.15); }
+    .profile summary:hover, .profile[open] summary { color: var(--green); background: #d7eddd; }
+    .profile-icon { width: 21px; height: 21px; flex: 0 0 21px; }
+    .profile-fields { position: absolute; z-index: 3; top: 44px; right: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 11px; width: min(440px, calc(100vw - 36px)); padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); box-shadow: 0 12px 35px rgba(24, 54, 43, 0.15); }
+    .profile-sidebar .profile-fields { top: auto; right: auto; bottom: 52px; left: 0; }
+    .profile-title { grid-column: 1 / -1; color: var(--green); font-size: 13px; font-weight: 700; }
     .profile-fields label { display: grid; gap: 5px; color: var(--muted); font-size: 11px; }
     .profile-fields input { width: 100%; min-height: 37px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: #fff; }
     .profile-fields .wide { grid-column: 1 / -1; }
+    .profile-save-row { display: flex; grid-column: 1 / -1; align-items: center; justify-content: space-between; gap: 10px; }
+    .profile-save-status { color: var(--muted); font-size: 11px; }
+    .profile-save-status[data-state="error"] { color: var(--danger); }
+    .profile-save { min-height: 34px; padding: 0 15px; border: 0; border-radius: 7px; color: #fff; background: var(--green); font-size: 12px; font-weight: 700; }
+    .profile-save:hover { background: #285447; }
     .conversation { display: flex; flex-direction: column; gap: 22px; width: min(940px, calc(100% - 64px)); min-height: 0; margin: 0 auto; padding: 28px 0 30px; overflow-y: auto; scroll-behavior: smooth; }
     .welcome { display: flex; flex: 1 0 auto; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0 12px; text-align: center; animation: arrive 420ms ease-out both; }
     .welcome[hidden] { display: none; }
@@ -125,18 +131,21 @@
     @keyframes arrive { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pulse { from { opacity: 0.35; transform: translateY(0); } to { opacity: 1; transform: translateY(-2px); } }
     @media (max-width: 760px) {
-      .app-layout { grid-template-columns: 1fr; }
-      .sidebar { display: none; }
+      .app-layout { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+      .sidebar { flex-direction: row; align-items: center; gap: 8px; max-height: 66px; padding: 8px 12px; overflow-x: auto; border-right: 0; border-bottom: 1px solid #dce8dd; }
+      .sidebar-brand, .sidebar-nav, .history-heading, .history-status { display: none; }
+      .new-chat { flex: 0 0 auto; min-height: 34px; margin: 0; }
+      .chat-history { display: flex; flex: 1; gap: 5px; overflow-x: auto; overflow-y: hidden; }
+      .profile-sidebar { width: auto; margin: 0 0 0 auto; padding: 0; border: 0; }
+      .profile summary { width: 40px; min-height: 38px; justify-content: center; padding: 0; border: 1px solid #cfe0d1; border-radius: 50%; background: rgba(255,255,255,.72); }
+      .profile-label { display: none; }
+      .history-item { flex: 0 0 auto; max-width: 160px; }
+      .history-button { max-width: 160px; padding: 8px; }
+      .history-empty { flex: 0 0 auto; padding: 8px; white-space: nowrap; }
       .topbar { min-height: 104px; padding: 8px 16px; }
       .topbar-inner { min-height: 86px; flex-wrap: wrap; gap: 7px 12px; }
-      .brand { gap: 8px; }
-      .brand-mark { width: 34px; height: 34px; }
-      .brand-pill { display: none; }
       .header-actions { width: 100%; justify-content: space-between; gap: 8px; }
-      .task-control { padding: 5px 8px; }
-      .task-control label { font-size: 11px; }
-      .task-control select { max-width: 150px; font-size: 12px; }
-      .profile summary { font-size: 11px; }
+      .profile-fields { position: fixed; top: 115px; right: 12px; }
       .conversation { width: calc(100% - 32px); padding: 22px 0 24px; gap: 17px; }
       .welcome { padding-top: 8px; }
       h1 { font-size: 37px; }
@@ -152,8 +161,6 @@
       .footnote { font-size: 9px; }
     }
     @media (max-width: 390px) {
-      .task-control label { display: none; }
-      .task-control select { max-width: 145px; }
       .suggested-label { width: 100%; }
       .language-control { padding: 4px 7px; }
     }
@@ -170,13 +177,31 @@
       </div>
       <nav class="sidebar-nav">
         <button class="side-link active" type="button" data-nav="chat"><span class="side-icon" aria-hidden="true">✦</span>AI Mitra</button>
-        <button class="side-link" type="button" data-nav="business"><span class="side-icon" aria-hidden="true">▥</span>Business</button>
-        <button class="side-link" type="button" data-nav="schemes"><span class="side-icon" aria-hidden="true">▤</span>Schemes</button>
-        <button class="side-link" type="button" data-nav="tips"><span class="side-icon" aria-hidden="true">☼</span>Tips</button>
-        <button class="side-link" type="button" data-nav="profile"><span class="side-icon" aria-hidden="true">●</span>Profile</button>
       </nav>
-      <div class="sidebar-art" aria-hidden="true"><div class="cart-illustration">🛒</div></div>
-      <div class="sidebar-caption">Growing local businesses, together</div>
+      <button class="new-chat" id="new-chat" type="button"><span aria-hidden="true">＋</span>New chat</button>
+      <div class="history-heading">Recent chats</div>
+      <ul class="chat-history" id="chat-history" aria-label="Previous chats"></ul>
+      <div class="history-status" id="history-status" aria-live="polite"></div>
+      <details class="profile profile-sidebar">
+        <summary aria-label="Open profile" title="Profile">
+          <svg class="profile-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" fill="currentColor"></circle>
+            <path d="M4.5 21a7.5 7.5 0 0 1 15 0" fill="currentColor"></path>
+          </svg>
+          <span class="profile-label">Profile</span>
+        </summary>
+        <div class="profile-fields">
+          <div class="profile-title">Your profile</div>
+          <label>Business type<input id="business-type" maxlength="120" placeholder="Fruit seller"></label>
+          <label>Location<input id="location" maxlength="160" placeholder="Pune Camp"></label>
+          <label class="wide">Products, separated by commas<input id="products" maxlength="300" placeholder="Mangoes, bananas, oranges"></label>
+          <label>Business name<input id="business-name" maxlength="120" placeholder="Optional"></label>
+          <div class="profile-save-row">
+            <span class="profile-save-status" id="profile-save-status" role="status" aria-live="polite"></span>
+            <button class="profile-save" id="save-profile" type="button">Save profile</button>
+          </div>
+        </div>
+      </details>
     </aside>
     <main class="shell">
     <header class="topbar">
@@ -190,25 +215,7 @@
               <option value="Hindi">हिन्दी</option>
             </select>
           </label>
-          <div class="task-control">
-            <label for="task">Help with:</label>
-            <select id="task">
-              <option value="general">Anything</option>
-              <option value="business_profile">Business profile</option>
-              <option value="upi_setup">UPI setup</option>
-              <option value="local_seo">Local visibility</option>
-              <option value="customer_engagement">Customer engagement</option>
-            </select>
-          </div>
-          <details class="profile">
-            <summary><span aria-hidden="true">▣</span> Business details</summary>
-            <div class="profile-fields">
-              <label>Business type<input id="business-type" maxlength="120" placeholder="Fruit seller"></label>
-              <label>Location<input id="location" maxlength="160" placeholder="Pune Camp"></label>
-              <label class="wide">Products, separated by commas<input id="products" maxlength="300" placeholder="Mangoes, bananas, oranges"></label>
-              <label>Business name<input id="business-name" maxlength="120" placeholder="Optional"></label>
-            </div>
-          </details>
+          <input id="task" type="hidden" value="general">
         </div>
       </div>
     </header>
@@ -255,7 +262,181 @@
     const attachmentInput = document.querySelector("#attachment");
     const attachmentName = document.querySelector("#file-name");
     const languageSelect = document.querySelector("#response-language");
+    const historyList = document.querySelector("#chat-history");
+    const historyStatus = document.querySelector("#history-status");
+    const profileMenu = document.querySelector(".profile");
+    const profileSaveStatus = document.querySelector("#profile-save-status");
+    const historyKey = "vendormitra-chat-history-v1";
+    const profileKey = "vendormitra-profile-v1";
+    const languageKey = "vendormitra-language-v1";
+    let savedChats = loadChats();
+    let currentChatId = null;
+    let savedProfile = {};
     let attachmentText = "";
+
+    function loadChats() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(historyKey) || "[]");
+        return Array.isArray(stored)
+          ? stored.filter((chat) => (
+            chat &&
+            typeof chat.id === "string" &&
+            typeof chat.title === "string" &&
+            Array.isArray(chat.messages)
+          ))
+          : [];
+      } catch (error) {
+        console.error("Could not load saved chats.", error);
+        document.querySelector("#history-status").textContent = "Saved chats could not be loaded.";
+        return [];
+      }
+    }
+
+    function persistChats() {
+      try {
+        localStorage.setItem(historyKey, JSON.stringify(savedChats.slice(0, 40)));
+        historyStatus.textContent = "";
+      } catch (error) {
+        console.error("Could not save chat history.", error);
+        historyStatus.textContent = "Chat history could not be saved in this browser.";
+      }
+    }
+
+    function renderHistory() {
+      historyList.replaceChildren();
+      if (!savedChats.length) {
+        const empty = document.createElement("li");
+        empty.className = "history-empty";
+        empty.textContent = "Your previous chats will appear here.";
+        historyList.append(empty);
+        return;
+      }
+
+      const recentChats = [...savedChats].sort((a, b) => b.updatedAt - a.updatedAt);
+      for (const chat of recentChats) {
+        const item = document.createElement("li");
+        item.className = "history-item";
+        const button = document.createElement("button");
+        button.className = "history-button";
+        button.type = "button";
+        button.textContent = chat.title || "New chat";
+        button.title = chat.title || "New chat";
+        button.classList.toggle("active", chat.id === currentChatId);
+        button.setAttribute("aria-current", chat.id === currentChatId ? "true" : "false");
+        button.addEventListener("click", () => openChat(chat.id));
+        item.append(button);
+        historyList.append(item);
+      }
+    }
+
+    function saveChatMessage(role, text, sources = []) {
+      let chat = savedChats.find((item) => item.id === currentChatId);
+      if (!chat) {
+        currentChatId = globalThis.crypto?.randomUUID
+          ? globalThis.crypto.randomUUID()
+          : `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        chat = {
+          id: currentChatId,
+          title: role === "user" ? text.slice(0, 48) : "New chat",
+          updatedAt: Date.now(),
+          messages: [],
+        };
+        savedChats.unshift(chat);
+      }
+      chat.messages.push({ role, text, sources, createdAt: Date.now() });
+      if (role === "user" && chat.messages.filter((message) => message.role === "user").length === 1) {
+        chat.title = text.replace(/\s+/g, " ").slice(0, 48) || "New chat";
+      }
+      chat.updatedAt = Date.now();
+      savedChats = savedChats
+        .sort((a, b) => b.updatedAt - a.updatedAt)
+        .slice(0, 40);
+      persistChats();
+      renderHistory();
+    }
+
+    function openChat(chatId) {
+      if (sendButton.disabled) return;
+      const chat = savedChats.find((item) => item.id === chatId);
+      if (!chat) return;
+      currentChatId = chat.id;
+      conversation.replaceChildren(welcome);
+      welcome.hidden = chat.messages.length > 0;
+      for (const message of chat.messages) {
+        if (typeof message.text === "string" && ["user", "assistant"].includes(message.role)) {
+          addMessage(message.role, message.text, Array.isArray(message.sources) ? message.sources : []);
+        }
+      }
+      if (chat.messages.length) conversation.scrollTop = conversation.scrollHeight;
+      document.querySelectorAll(".side-link").forEach((item) => {
+        item.classList.toggle("active", item.dataset.nav === "chat");
+      });
+      renderHistory();
+    }
+
+    function startNewChat() {
+      if (sendButton.disabled) return;
+      currentChatId = null;
+      conversation.replaceChildren(welcome);
+      welcome.hidden = false;
+      questionInput.value = "";
+      questionInput.style.height = "auto";
+      attachmentText = "";
+      attachmentName.textContent = "";
+      attachmentInput.value = "";
+      document.querySelector("#task").value = "general";
+      profileMenu.open = false;
+      document.querySelectorAll(".side-link").forEach((item) => {
+        item.classList.toggle("active", item.dataset.nav === "chat");
+      });
+      renderHistory();
+      questionInput.focus();
+    }
+
+    function loadProfile() {
+      try {
+        const profile = JSON.parse(localStorage.getItem(profileKey) || "{}");
+        for (const key of ["business-type", "location", "products", "business-name"]) {
+          const value = profile[key];
+          if (typeof value === "string") document.querySelector(`#${key}`).value = value;
+        }
+        savedProfile = currentProfileValues();
+        profileSaveStatus.textContent = Object.values(savedProfile).some(Boolean) ? "Saved" : "No saved details";
+      } catch (error) {
+        console.error("Could not load saved profile.", error);
+        historyStatus.textContent = "Profile details could not be loaded.";
+      }
+      try {
+        const language = localStorage.getItem(languageKey);
+        if (language === "English" || language === "Hindi") languageSelect.value = language;
+      } catch (error) {
+        console.error("Could not load saved language preference.", error);
+      }
+    }
+
+    function currentProfileValues() {
+      return Object.fromEntries(
+        ["business-type", "location", "products", "business-name"].map((key) => [
+          key,
+          document.querySelector(`#${key}`).value,
+        ]),
+      );
+    }
+
+    function saveProfile() {
+      const profile = currentProfileValues();
+      try {
+        localStorage.setItem(profileKey, JSON.stringify(profile));
+        savedProfile = profile;
+        profileSaveStatus.dataset.state = "saved";
+        profileSaveStatus.textContent = "Saved — Mitra will use these details";
+        historyStatus.textContent = "";
+      } catch (error) {
+        console.error("Could not save profile details.", error);
+        profileSaveStatus.dataset.state = "error";
+        profileSaveStatus.textContent = "Could not save. Please try again.";
+      }
+    }
 
     function addMessage(role, text, sources = []) {
       const message = document.createElement("article");
@@ -304,12 +485,12 @@
     }
 
     function profileFromForm() {
-      const products = document.querySelector("#products").value.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 20);
+      const products = (savedProfile.products || "").split(",").map((item) => item.trim()).filter(Boolean).slice(0, 20);
       const vendor = {
-        business_name: document.querySelector("#business-name").value.trim(),
-        business_type: document.querySelector("#business-type").value.trim(),
+        business_name: (savedProfile["business-name"] || "").trim(),
+        business_type: (savedProfile["business-type"] || "").trim(),
         products,
-        location: document.querySelector("#location").value.trim(),
+        location: (savedProfile.location || "").trim(),
         preferred_language: languageSelect.value,
       };
       return Object.fromEntries(Object.entries(vendor).filter(([, value]) => Array.isArray(value) ? value.length : value));
@@ -333,6 +514,7 @@
       }
       welcome.hidden = true;
       addMessage("user", trimmed);
+      saveChatMessage("user", trimmed);
       questionInput.value = "";
       questionInput.style.height = "auto";
       sendButton.disabled = true;
@@ -374,6 +556,7 @@
           throw new Error("The assistant returned an empty answer. Please try again.");
         }
         addMessage("assistant", data.answer, Array.isArray(data.sources) ? data.sources : []);
+        saveChatMessage("assistant", data.answer, Array.isArray(data.sources) ? data.sources : []);
         attachmentText = "";
         attachmentName.textContent = "";
         attachmentInput.value = "";
@@ -411,31 +594,24 @@
       button.addEventListener("click", () => {
         document.querySelectorAll(".side-link").forEach((item) => item.classList.remove("active"));
         button.classList.add("active");
-        const profile = document.querySelector(".profile");
-        switch (button.dataset.nav) {
-          case "business":
-            document.querySelector("#task").value = "business_profile";
-            profile.open = true;
-            break;
-          case "profile":
-            profile.open = true;
-            break;
-          case "schemes":
-            document.querySelector("#task").value = "general";
-            sendQuestion(languageSelect.value === "Hindi"
-              ? "मुझे स्ट्रीट वेंडर्स के लिए उपलब्ध सरकारी योजनाओं के बारे में बताइए।"
-              : "What government schemes are available for street vendors?");
-            break;
-          case "tips":
-            document.querySelector("#task").value = "customer_engagement";
-            sendQuestion(languageSelect.value === "Hindi"
-              ? "मेरे छोटे व्यवसाय को बढ़ाने के लिए कुछ व्यावहारिक सुझाव दें।"
-              : "Give me practical tips to grow my small business.");
-            break;
-          default:
-            questionInput.focus();
-        }
+        questionInput.focus();
       });
+    });
+    document.querySelector("#new-chat").addEventListener("click", startNewChat);
+    for (const id of ["business-type", "location", "products", "business-name"]) {
+      document.querySelector(`#${id}`).addEventListener("input", () => {
+        profileSaveStatus.dataset.state = "unsaved";
+        profileSaveStatus.textContent = "Unsaved changes";
+      });
+    }
+    document.querySelector("#save-profile").addEventListener("click", saveProfile);
+    languageSelect.addEventListener("change", () => {
+      try {
+        localStorage.setItem(languageKey, languageSelect.value);
+      } catch (error) {
+        console.error("Could not save language preference.", error);
+        historyStatus.textContent = "Language preference could not be saved in this browser.";
+      }
     });
     document.querySelector("#attach").addEventListener("click", () => attachmentInput.click());
     attachmentInput.addEventListener("change", async () => {
@@ -475,6 +651,14 @@
         addMessage("error", `Voice input could not start: ${error.message}`);
       }
     });
+    loadProfile();
+    renderHistory();
+    if (savedChats.length) {
+      const latestChat = [...savedChats].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+      openChat(latestChat.id);
+    } else {
+      startNewChat();
+    }
   </script>
 </body>
 </html>

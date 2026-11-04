@@ -15,7 +15,8 @@ guidance.
 
 ```text
 Browser
-  ├─ Chat UI (English/Hindi selector, profile, suggested prompts)
+  ├─ Chat UI (English/Hindi selector, profile, saved-chat sidebar)
+  ├─ Browser localStorage (chat history, profile, language preference)
   └─ POST /chat
        ├─ FastAPI validates question, task, profile, response language
        └─ app.agent
@@ -41,6 +42,15 @@ Source PDFs → app.ingest → Markdown → POST /ingest
    of the UI selection. Otherwise, the chosen response language is passed into
    the system prompt. Hindi output is requested in Devanagari script.
 6. The API returns the answer and de-duplicated source filenames.
+
+The browser stores up to 40 recent conversations, the saved profile fields,
+and the selected language in localStorage. Profile edits are not sent to the
+assistant until the user selects **Save profile**; saved profile fields are
+included in each `/chat` request and used as context for tailored responses.
+The profile editor opens from the person icon at the bottom of the sidebar.
+Chat history is specific to the browser profile and site origin; it is not
+synchronized to the backend or other devices. A New chat action starts a blank
+conversation, and selecting a previous chat restores its messages locally.
 
 If the vector collection is empty, the assistant still answers but is told that
 no verified source material is indexed. Its prompt directs it to avoid
