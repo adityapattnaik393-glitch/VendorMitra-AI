@@ -1,11 +1,23 @@
+import re
+
 from app.rag import retrieve_context
 from app.granite import generate_answer
+
+
+_HINDI_SCRIPT = re.compile(r"[\u0900-\u097f]")
+
+
+def _response_language(question: str, preferred_language: str) -> str:
+    if _HINDI_SCRIPT.search(question):
+        return "Hindi"
+    return preferred_language
 
 
 def ask_vendor_mitra(
     question: str,
     task: str = "general",
     vendor_profile: dict[str, object] | None = None,
+    preferred_language: str = "English",
 ):
     profile_lines = []
     for key, value in (vendor_profile or {}).items():
@@ -37,6 +49,7 @@ def ask_vendor_mitra(
         context=context,
         task=task,
         vendor_context=vendor_context,
+        preferred_language=_response_language(question, preferred_language),
     )
 
     return {

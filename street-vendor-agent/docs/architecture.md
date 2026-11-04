@@ -2,141 +2,142 @@
 
 ## Overview
 
-VendorMitra AI is a RAG-powered (Retrieval-Augmented Generation) agentic assistant
-that helps Indian street vendors and micro-entrepreneurs become digitally visible.
-It combines government document knowledge with IBM Granite's language understanding
-to give grounded, actionable answers to vendor queries.
+VendorMitra is a single-pass retrieval-augmented generation (RAG) chat
+application. The FastAPI backend serves the browser UI and API, retrieves
+relevant text from a local ChromaDB collection, and asks IBM Granite on
+watsonx.ai to compose a grounded response.
 
----
+This is not a multi-step autonomous agent: it does not plan tasks, browse the
+web, or invoke external business tools. The selected task only provides prompt
+guidance.
 
-## System Architecture
+## System diagram
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                        Frontend                          │
-│              (React / plain HTML chat UI)                │
-└───────────────────────┬──────────────────────────────────┘
-                        │ HTTP (REST)
-                        ▼
-┌──────────────────────────────────────────────────────────┐
-│                   FastAPI Backend                        │
-│                                                          │
-│  POST /chat  ──►  agent.py                               │
-│                      │                                   │
-│             ┌────────┴────────┐                          │
-│             ▼                 ▼                          │
-│          rag.py           granite.py                     │
-│   (retrieve context)   (generate answer)                 │
-│             │                 ▲                          │
-│             ▼                 │                          │
-│         ChromaDB          IBM watsonx.ai                 │
-│   (vector similarity    (Granite-3-8B-Instruct)          │
-│        search)                                           │
-└──────────────────────────────────────────────────────────┘
+```text
+Browser
+  ├─ Chat UI (English/Hindi selector, profile, suggested prompts)
+  └─ POST /chat
+       ├─ FastAPI validates question, task, profile, response language
+       └─ app.agent
+            ├─ app.rag: multilingual embedding → ChromaDB top-3 passages
+            └─ app.granite: prompt + passages → IBM watsonx.ai chat endpoint
+                  └─ answer + unique source filenames → Browser
+
+Source PDFs → app.ingest → Markdown → POST /ingest
+                                      └─ chunks + embeddings → ChromaDB
 ```
 
----
+## Request flow
 
-## RAG Pipeline
+1. The browser sends the question, selected response language, task, and
+   optional vendor details to `POST /chat`.
+2. FastAPI validates the request. The assistant appends vendor context to the
+   retrieval query when provided.
+3. `app.rag.retrieve_context` embeds the query with
+   `paraphrase-multilingual-MiniLM-L12-v2` and asks ChromaDB for up to three
+   matching chunks.
+4. `app.agent` builds the context and calls `app.granite.generate_answer`.
+5. A question containing Devanagari characters selects Hindi output regardless
+   of the UI selection. Otherwise, the chosen response language is passed into
+   the system prompt. Hindi output is requested in Devanagari script.
+6. The API returns the answer and de-duplicated source filenames.
 
-### Ingestion (one-time / on-demand)
+If the vector collection is empty, the assistant still answers but is told that
+no verified source material is indexed. Its prompt directs it to avoid
+unsupported government-policy claims and to recommend checking official
+sources.
 
-```
-Government PDFs  →  Docling (PDF→Markdown)  →  RecursiveCharacterTextSplitter
-  →  SentenceTransformer embeddings  →  ChromaDB (persistent vector store)
-```
+## Document ingestion and indexing
 
-**Documents indexed:**
-| File | Content |
-|------|---------|
-| `BHIM_UPI_Guidelines_2026_*.pdf` | BHIM UPI setup & merchant guidelines |
-| `FAQEng.pdf` | Digital payment FAQs (English) |
-| `FAQHindi.pdf` | Digital payment FAQs (Hindi) |
-| `Guidelines-for-Onboarding-*.pdf` | API-as-a-service onboarding guide |
-| `Portal User Manual.pdf` | Government portal usage manual |
-| `Scheme Guidelines.pdf` | MSME / PM SVANidhi scheme details |
-| `Street Vendors policy.pdf` | Street Vendors (Protection) Act policy |
-
-### Query Flow
-
-```
-Vendor question
-      │
-      ▼
-SentenceTransformer encode(question)
-      │
-      ▼
-ChromaDB.query(top_k=3)  →  relevant chunks + source filenames
-      │
-      ▼
-Prompt construction (question + context)
-      │
-      ▼
-IBM Granite (watsonx.ai /ml/v1/text/generation)
-      │
-      ▼
-Grounded answer + source list  →  vendor
+```text
+backend/data/raw/*.pdf
+        │
+        ▼
+app.ingest: Docling when installed, otherwise pypdf
+        │
+        ▼
+backend/data/processed/*.md
+        │
+        ▼
+POST /ingest → RecursiveCharacterTextSplitter
+        │         chunk size 800, overlap 120
+        ▼
+SentenceTransformer embeddings → ChromaDB persistent collection
 ```
 
----
+Text extraction and vector indexing are intentionally separate steps. Empty
+PDF extraction is reported as skipped and causes the conversion command to
+exit unsuccessfully; this helps identify scanned PDFs that need OCR. When a
+same-basename `.ocr.pdf` sidecar exists, ingestion uses it instead of the
+original and keeps the original Markdown filename. The optional Docling
+dependency can improve layout extraction but does not guarantee OCR for every
+scanned document.
 
-## Component Map
+ChromaDB uses a persistent directory at `backend/chroma_db/`. Re-running
+`POST /ingest` upserts chunks with stable document-based IDs.
 
-| File | Responsibility |
-|------|---------------|
-| `app/ingest.py` | Convert raw PDFs → Markdown with Docling |
-| `app/rag.py` | Chunk, embed, store (ChromaDB) & retrieve |
-| `app/granite.py` | IBM IAM auth + watsonx.ai Granite inference |
-| `app/agent.py` | Orchestrate RAG → Granite pipeline |
-| `app/main.py` | FastAPI routes: `/`, `/ingest`, `/chat` |
+## Components
 
----
+| Path | Responsibility |
+|---|---|
+| `backend/app/main.py` | FastAPI routes, request validation, CORS configuration, server entry point |
+| `backend/app/chat.html` | Responsive bilingual chat UI |
+| `backend/app/agent.py` | Retrieve-then-answer orchestration and Hindi-script detection |
+| `backend/app/rag.py` | PDF Markdown chunking, embeddings, ChromaDB indexing and retrieval |
+| `backend/app/ingest.py` | Convert source PDFs to Markdown and report extraction failures |
+| `backend/app/granite.py` | IBM IAM token handling and watsonx.ai chat requests |
+| `backend/app/check_granite.py` | Credential, model-availability, and live-call preflight |
+| `backend/tests/` | Unit tests for response language and Granite requests |
 
-## IBM Cloud Services Used
+## IBM integration
 
-- **IBM watsonx.ai** (IBM Cloud Lite) — hosts IBM Granite-3-8B-Instruct
-- **Model**: `ibm/granite-3-8b-instruct`
-- **Auth**: IBM IAM API Key → short-lived bearer token
+- watsonx.ai base URL: `https://{IBM_REGION}.ml.cloud.ibm.com`
+- Chat endpoint: `/ml/v1/text/chat?version=2024-10-08`
+- Default model: `ibm/granite-4-h-small`
+- Authentication: IBM IAM API key exchanged for a cached bearer token; a `401`
+  response triggers one token refresh and retry.
+- `python -m app.check_granite` checks configuration, lists chat models in the
+  configured region, and performs a real test request.
 
----
+The endpoint, version, and default model above reflect the current backend
+configuration. If the selected model is not enabled for the project or region,
+set `IBM_MODEL_ID` to an available chat model.
 
-## Environment Variables
+## Routes and runtime
 
-| Variable | Description |
-|----------|-------------|
-| `IBM_API_KEY` | IBM Cloud IAM API key |
-| `IBM_PROJECT_ID` | watsonx.ai project identifier |
-| `IBM_REGION` | IBM Cloud region (default: `us-south`) |
+| Method | Path | Behavior |
+|---|---|---|
+| `GET` | `/` | Return the chat page |
+| `GET` | `/health` | Report IBM config and ChromaDB status; does not call IBM |
+| `GET` | `/granite/test` | Test an IBM Granite request |
+| `POST` | `/ingest` | Convert processed Markdown to ChromaDB chunks |
+| `POST` | `/chat` | Retrieve context and generate an answer |
 
----
+Run from `backend/` with `python -m app.main`. The server binds to `0.0.0.0`
+and reads its port from `PORT` (default `8000`). The HTML UI is same-origin;
+CORS is off by default. A separate frontend may set `CORS_ORIGINS` to a
+comma-separated allowlist.
 
-## Running Locally
+## Configuration
 
-```bash
-cd street-vendor-agent/backend
+| Variable | Default | Use |
+|---|---|---|
+| `IBM_API_KEY` | unset | IBM IAM authentication |
+| `IBM_PROJECT_ID` | unset | watsonx.ai project |
+| `IBM_REGION` | `us-south` | watsonx.ai region |
+| `IBM_MODEL_ID` | `ibm/granite-4-h-small` | Chat model |
+| `PORT` | `8000` | HTTP listen port for the module entry point |
+| `CORS_ORIGINS` | empty | Allowed origins for a separately hosted browser client |
 
-# 1. Create and activate virtual environment
-python -m venv venv
-venv\Scripts\activate          # Windows
-# source venv/bin/activate     # macOS/Linux
+## Limitations
 
-# 2. Install dependencies
-pip install -r requirements.txt
-
-# 3. Set credentials
-copy .env.example .env         # then fill in your IBM keys
-
-# 4. Ingest government documents (one-time)
-python -m app.ingest
-
-# 5. Index chunks into ChromaDB
-curl -X POST http://localhost:8000/ingest
-
-# 6. Start the API server
-uvicorn app.main:app --reload
-```
-
-Then POST to `http://localhost:8000/chat`:
-```json
-{ "question": "I sell fruit in Pune's Camp area. How do I set up UPI?" }
-```
+- Answers depend on extracted and indexed source content; an answer does not
+  guarantee that every source PDF was parsed successfully.
+- Retrieval returns at most three chunks and does not browse live official
+  websites.
+- Hindi automatic language selection detects Devanagari text. Romanized Hindi
+  follows the language selected in the UI.
+- Scheme rules and other time-sensitive information should be confirmed with
+  the responsible official source.
+- The sidebar's schemes and tips actions submit focused questions to the same
+  chat endpoint; they are not separate data-backed product modules.

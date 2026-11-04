@@ -113,6 +113,7 @@ def generate_answer(
     task: str = "general",
     vendor_context: str = "",
     max_tokens: int = 700,
+    preferred_language: str = "English",
 ) -> str:
     """Call IBM Granite on watsonx.ai and return the answer text."""
     task_guidance = {
@@ -133,8 +134,10 @@ def generate_answer(
         "to government portals, fintech apps, commerce platforms or consumer data. Do not "
         "invent local demand, pricing, geolocation or business details. If the sources do "
         "not support a current or location-specific claim, say so and suggest confirming "
-        "it with the relevant official source. Use the vendor's preferred language when "
-        "given; otherwise answer in the language of the question. Be concise and actionable."
+        "it with the relevant official source. "
+        f"Write the entire answer in {preferred_language}. For Hindi, use natural Hindi "
+        "in Devanagari script, even when the question is written in English. Do not "
+        "switch languages unless the vendor asks you to. Be concise and actionable."
     )
     user = f"{vendor_section}\nRetrieved context:\n{context}\n\nVendor question: {question}"
     messages = [

@@ -1,165 +1,208 @@
-# VendorMitra AI 🛒
+# VendorMitra AI
 
-> **Street Vendor Digitalization Agent** — powered by RAG + IBM Granite
+VendorMitra is a bilingual assistant for Indian street vendors and
+micro-entrepreneurs. It retrieves passages from indexed government documents and
+uses IBM Granite on watsonx.ai to answer practical business questions.
 
-VendorMitra AI helps Indian street vendors and micro-entrepreneurs become
-digitally visible by generating business profiles, UPI setup guides, local SEO
-strategies, and customer engagement tips — all grounded in real government
-documents and policies.
+## What it does
 
----
+- Answers questions using a ChromaDB knowledge base built from local PDFs.
+- Provides a responsive chat interface with English/Hindi response selection.
+- Automatically replies in Hindi when a question contains Devanagari text,
+  even if English is selected. For Romanized Hindi/Hinglish, select Hindi.
+- Offers focused prompts for UPI setup, business profiles, local visibility,
+  customer engagement, and government schemes.
+- Returns the filenames of retrieved source documents with each answer.
 
-## Features
+The assistant uses one retrieve-then-answer pass. It does not browse the web,
+call external business tools, or verify changing scheme details in real time.
+Confirm current eligibility, fees, dates, and application steps with official
+sources.
 
-- 🏛️ **RAG pipeline** — answers retrieved from official government PDFs
-  (PM SVANidhi, Street Vendors Act, BHIM UPI, MSME schemes)
-- 🤖 **IBM Granite** — configurable chat model via watsonx.ai
-- 🌐 **Multilingual** — supports Hindi and English queries
-- ⚡ **FastAPI** backend with a customer chat page at `/` and API routes for `/health`, `/granite/test`, `/chat`, and `/ingest`
-- 🗄️ **ChromaDB** vector store with multilingual sentence embeddings
+## Requirements
 
----
+- Python 3.12
+- An IBM Cloud API key and a watsonx.ai project with a chat model available
+- Network access to IBM IAM and watsonx.ai for chat responses
 
-## Project Structure
+## Set up
 
-```
-street-vendor-agent/
-├── backend/
-│   ├── app/
-│   │   ├── main.py         # FastAPI app & routes
-│   │   ├── chat.html       # Customer chat page served at /
-│   │   ├── agent.py        # RAG → Granite orchestration
-│   │   ├── granite.py      # IBM watsonx.ai Granite client
-│   │   ├── rag.py          # ChromaDB ingest & retrieval
-│   │   └── ingest.py       # PDF → Markdown (Docling)
-│   ├── data/
-│   │   ├── raw/            # Source government PDFs
-│   │   └── processed/      # Extracted Markdown files
-│   ├── chroma_db/          # Persistent vector store
-│   ├── requirements.txt
-│   └── .env.example
-└── docs/
-    └── architecture.md
-```
-
----
-
-## Quick Start
-
-### Prerequisites
-
-- Python 3.12 (recommended for the pinned model/runtime wheels)
-- IBM Cloud account (Lite tier is sufficient)
-- watsonx.ai project with Granite model enabled
-
-### 1. Clone & enter the backend
+From the repository root:
 
 ```bash
-git clone <repo-url>
 cd street-vendor-agent/backend
+python3.12 -m venv .venv
 ```
 
-### 2. Set up the backend (Windows PowerShell)
+Activate the environment:
 
 ```bash
-Set-ExecutionPolicy -Scope Process Bypass
-.\setup.ps1
+# macOS/Linux
+source .venv/bin/activate
+
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
 ```
 
-The script recreates `backend/.venv`, installs CPU-only PyTorch first, then the
-backend requirements. It creates `.env` only if one does not already exist.
-
-### 3. Configure IBM credentials
-
-Edit `backend/.env` and set `IBM_API_KEY`, `IBM_PROJECT_ID`, and `IBM_REGION`.
-`IBM_MODEL_ID` defaults to `ibm/granite-4-h-small`; change it only if the
-preflight reports that the model is unavailable for your region/project.
-
-### 4. Check IBM access and start the backend
+Install dependencies and create the local environment file:
 
 ```bash
-\.venv\Scripts\Activate.ps1
-python -m app.check_granite
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+cp .env.example .env                 # macOS/Linux
+# Copy-Item .env.example .env        # Windows PowerShell
+```
+
+The Windows-only `setup.ps1` script creates the Python 3.12 environment and
+installs CPU-only PyTorch before the backend requirements. It also creates
+`.env` if it is not already present.
+
+Edit `.env` and set `IBM_API_KEY` and `IBM_PROJECT_ID`. `IBM_REGION`
+defaults to `us-south`; `IBM_MODEL_ID` defaults to
+`ibm/granite-4-h-small`. If the model is unavailable for your project or region,
+use `python -m app.check_granite` to see the available chat models.
+
+## Extract and index documents
+
+The repository's source PDFs are in `backend/data/raw/`. Convert them to
+Markdown:
+
+```bash
 python -m app.ingest
-uvicorn app.main:app --reload
 ```
 
-PDF conversion uses `pypdf` by default. For improved table/layout extraction,
-install the optional `pip install -r requirements-docling.txt` before ingestion.
-With the server running, check `http://127.0.0.1:8000/health`, then
-`http://127.0.0.1:8000/granite/test`, and call `POST /ingest` once to index the
-processed documents.
-
-Open `http://127.0.0.1:8000` in your browser to use the customer chat. Open
-`http://127.0.0.1:8000/docs` to try the API directly.
-
-### 6. Ask a question
+By default, conversion uses `pypdf`. For improved layout and table extraction,
+install the optional Docling dependency before conversion:
 
 ```bash
-curl -X POST http://localhost:8000/chat \
+python -m pip install -r requirements-docling.txt
+python -m app.ingest
+```
+
+Conversion and vector indexing are separate operations. After conversion,
+start the server and call `POST /ingest` to index the converted Markdown files.
+
+The ingest command reports documents that fail or produce no text and exits
+unsuccessfully if any need attention. For scanned PDFs, create a searchable
+OCR copy next to the original with the `.ocr.pdf` suffix. For example, with
+OCRmyPDF, Tesseract, and Hindi language data installed:
+
+```bash
+ocrmypdf --skip-text -l hin+eng \
+  data/raw/FAQHindi.pdf data/raw/FAQHindi.ocr.pdf
+python -m app.ingest
+```
+
+Ingestion prefers the `.ocr.pdf` copy and writes to the original document's
+Markdown filename. Installing Docling alone does not guarantee that scanned
+pages will be recognized. Check the command output before relying on answers
+from a document.
+
+## Run and use
+
+Run the app from `backend/`:
+
+```bash
+python -m app.main
+```
+
+The server binds to `0.0.0.0` and uses `PORT` (default `8000`), which supports
+forwarded and hosted ports. Open `http://127.0.0.1:8000/` locally. The UI offers
+English and Hindi response choices; Hindi written in Devanagari takes priority
+over the selected choice.
+
+After extraction, index or refresh the knowledge base from another terminal:
+
+```bash
+curl -X POST http://127.0.0.1:8000/ingest
+```
+
+Check service status at `GET /health`, IBM connectivity at `GET /granite/test`,
+and the interactive API at `/docs`.
+
+Example Hindi request:
+
+```bash
+curl -X POST http://127.0.0.1:8000/chat \
   -H "Content-Type: application/json" \
-  -d '{"question": "I sell fruit in Pune Camp area, how do I set up UPI?"}'
+  -d '{"question":"मैं UPI से भुगतान कैसे स्वीकार करूं?","response_language":"English"}'
 ```
 
-Response:
-```json
-{
-  "answer": "To set up UPI as a street vendor, you need to ...",
-  "sources": ["BHIM_UPI_Guidelines_2026.md", "FAQEng.md"]
-}
-```
+The response is in Hindi because the question uses Devanagari. To select Hindi
+for an English or Romanized Hinglish query, set `"response_language":"Hindi"`.
 
----
-
-## API Reference
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET  | `/`        | Service message |
-| GET  | `/health`  | IBM configuration and indexed chunk count |
-| GET  | `/granite/test` | Test a real IBM Granite chat request |
-| POST | `/ingest`  | Index all processed documents into ChromaDB |
-| POST | `/chat`    | Ask a vendor question; returns answer + sources |
-
-### POST `/chat` — Request body
-
-```json
-{ "question": "string" }
-```
-
-### POST `/chat` — Response
+Example response:
 
 ```json
 {
-  "answer": "string",
-  "sources": ["filename1.md", "filename2.md"]
+  "answer": "…",
+  "sources": ["BHIM_UPI_Guidelines_2026_012a0b1bce.md"]
 }
 ```
 
----
+## API
 
-## IBM Technology Stack
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/` | Serve the chat interface |
+| `GET` | `/health` | Report IBM configuration and vector-store status |
+| `GET` | `/granite/test` | Make a real IBM Granite test request |
+| `POST` | `/ingest` | Index Markdown documents in ChromaDB |
+| `POST` | `/chat` | Retrieve context and generate a response |
 
-| Component | IBM Service |
-|-----------|-------------|
-| Language model | IBM Granite chat model (`IBM_MODEL_ID`, default `ibm/granite-4-h-small`) |
-| Platform | IBM watsonx.ai (IBM Cloud Lite) |
-| Auth | IBM IAM API Key |
+`POST /chat` accepts a question, optional task, optional vendor profile, and
+optional response language:
 
----
+```json
+{
+  "question": "How can I accept UPI payments?",
+  "response_language": "Hindi",
+  "task": "upi_setup"
+}
+```
 
-## Government Documents (RAG Knowledge Base)
+Supported `response_language` values are `English` and `Hindi`; when omitted,
+the request uses the vendor profile language or defaults to `English`.
+Questions written in Devanagari are answered in Hindi regardless of this
+setting.
 
-| Document | Coverage |
-|----------|----------|
-| BHIM UPI Guidelines 2026 | UPI merchant setup, QR codes |
-| FAQ English / Hindi | Digital payment common questions |
-| Onboarding API Guidelines | Digital service onboarding steps |
-| Portal User Manual | Government portal usage |
-| Scheme Guidelines | PM SVANidhi micro-credit scheme |
-| Street Vendors Policy | Protection of Livelihood & Regulation Act |
+## Configuration and deployment
 
----
+| Variable | Default | Description |
+|---|---|---|
+| `IBM_API_KEY` | — | IBM Cloud IAM API key |
+| `IBM_PROJECT_ID` | — | watsonx.ai project ID |
+| `IBM_REGION` | `us-south` | watsonx.ai deployment region |
+| `IBM_MODEL_ID` | `ibm/granite-4-h-small` | Chat model ID |
+| `PORT` | `8000` | HTTP port when started with `python -m app.main` |
+| `CORS_ORIGINS` | empty | Comma-separated allowed origins for a separate frontend |
+
+The chat page is served by this backend, so CORS is disabled by default.
+Configure `CORS_ORIGINS` only when a frontend is hosted on another origin. Keep
+`.env` private and never commit IBM credentials.
+
+## Troubleshooting
+
+- **Chat reports an IBM error:** check `/health`, then run
+  `python -m app.check_granite`. Confirm the API key, project ID, region, model
+  availability, and account limits.
+- **A PDF is skipped for having no text:** create a searchable `.ocr.pdf` copy
+  with OCRmyPDF and the right language data, rerun `python -m app.ingest`, then
+  call `POST /ingest` to update ChromaDB.
+- **No documents are indexed:** make sure extraction produced non-empty `.md`
+  files under `backend/data/processed/`, then call `POST /ingest`.
+- **Port is already in use:** start with another `PORT`, for example
+  `PORT=8080 python -m app.main` on macOS/Linux.
+- **Hindi query is Romanized:** choose Hindi from the response-language menu;
+  automatic detection is based on Devanagari characters.
+
+## Tests
+
+From `street-vendor-agent/backend/`:
+
+```bash
+python -m unittest discover -s tests
+```
 
 ## License
 
