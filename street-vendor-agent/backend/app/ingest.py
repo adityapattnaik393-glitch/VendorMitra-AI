@@ -5,7 +5,6 @@ _BACKEND_DIR = Path(__file__).resolve().parent.parent
 RAW_DIR = _BACKEND_DIR / "data" / "raw"
 OUTPUT_DIR = _BACKEND_DIR / "data" / "processed"
 
-
 def _make_converter():
     try:
         from docling.document_converter import DocumentConverter
