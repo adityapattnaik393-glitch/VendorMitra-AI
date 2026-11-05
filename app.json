@@ -1,0 +1,54 @@
+{
+  "name": "VendorMitra AI",
+  "description": "Bilingual (English/Hindi) agentic AI assistant that helps Indian street vendors find government schemes, go digital and grow their business, using IBM Granite on watsonx.ai, RAG and live verification of official government websites.",
+  "repository": "https://github.com/adityapattnaik393-glitch/VendorMitra-AI",
+  "license": "MIT",
+  "keywords": [
+    "agentic-ai",
+    "rag",
+    "ibm-granite",
+    "watsonx",
+    "fastapi",
+    "chromadb",
+    "street-vendors"
+  ],
+  "runtime": "python-3.12",
+  "root_directory": "street-vendor-agent/backend",
+  "env": {
+    "IBM_API_KEY": {
+      "description": "IBM Cloud IAM API key",
+      "required": true
+    },
+    "IBM_PROJECT_ID": {
+      "description": "watsonx.ai project ID",
+      "required": true
+    },
+    "IBM_REGION": {
+      "description": "watsonx.ai region",
+      "value": "us-south",
+      "required": false
+    },
+    "IBM_MODEL_ID": {
+      "description": "IBM Granite chat model",
+      "value": "ibm/granite-4-h-small",
+      "required": false
+    },
+    "TAVILY_API_KEY": {
+      "description": "Enables live search of allowlisted official government websites",
+      "required": false
+    },
+    "PORT": {
+      "description": "HTTP port",
+      "value": "8000",
+      "required": false
+    }
+  },
+  "scripts": {
+    "install": "python -m pip install -r requirements.txt",
+    "check": "python -m app.check_granite",
+    "ingest": "python -m app.ingest",
+    "start": "python -m app.main",
+    "test": "python -m unittest discover -s tests"
+  },
+  "healthcheck": "/health"
+}
