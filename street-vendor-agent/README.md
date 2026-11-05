@@ -1,8 +1,9 @@
 # VendorMitra AI
 
 VendorMitra is a bilingual assistant for Indian street vendors and
-micro-entrepreneurs. It retrieves passages from indexed government documents and
-uses IBM Granite on watsonx.ai to answer practical business questions.
+micro-entrepreneurs. It retrieves passages from indexed government documents,
+can search allowlisted official government websites for current scheme details,
+and uses IBM Granite on watsonx.ai to answer practical business questions.
 
 ## What it does
 
@@ -19,12 +20,14 @@ uses IBM Granite on watsonx.ai to answer practical business questions.
 - Creates WhatsApp messages, signboard lines, and QR-payment poster copy.
 - Offers guidance for UPI setup, local visibility, customer engagement, and
   government schemes.
-- Returns the filenames of retrieved source documents with each answer.
+- Clearly labels stored-document information and includes clickable official
+  links when live website information is retrieved.
 
-The assistant uses one retrieve-then-answer pass. It does not browse the web,
-call external business tools, or verify changing scheme details in real time.
-Confirm current eligibility, fees, dates, and application steps with official
-sources.
+For government-scheme questions, Granite decides whether current verification
+is needed. When appropriate, Tavily searches allowlisted official portals such
+as myScheme, PM SVANidhi, Udyam, MUDRA, and MoHUA. If live search is unavailable,
+the assistant falls back to stored documents and says it could not verify the
+information online. It does not call external business tools.
 
 Edit vendor details from the person icon at the bottom of the sidebar and select **Save profile**
 to include them in future answers. Unsaved edits are not sent to the assistant.
@@ -41,7 +44,8 @@ you have not provided and never creates a payment QR code.
 
 - Python 3.12
 - An IBM Cloud API key and a watsonx.ai project with a chat model available
-- Network access to IBM IAM and watsonx.ai for chat responses
+- A Tavily API key for live official-site search
+- Network access to IBM IAM, watsonx.ai, and Tavily
 
 ## Set up
 
@@ -75,7 +79,8 @@ The Windows-only `setup.ps1` script creates the Python 3.12 environment and
 installs CPU-only PyTorch before the backend requirements. It also creates
 `.env` if it is not already present.
 
-Edit `.env` and set `IBM_API_KEY` and `IBM_PROJECT_ID`. `IBM_REGION`
+Edit `.env` and set `IBM_API_KEY`, `IBM_PROJECT_ID`, and `TAVILY_API_KEY`
+to enable live searches of official government websites. `IBM_REGION`
 defaults to `us-south`; `IBM_MODEL_ID` defaults to
 `ibm/granite-4-h-small`. If the model is unavailable for your project or region,
 use `python -m app.check_granite` to see the available chat models.
@@ -99,6 +104,8 @@ python -m app.ingest
 
 Conversion and vector indexing are separate operations. After conversion,
 start the server and call `POST /ingest` to index the converted Markdown files.
+For a fresh clone, run `curl -X POST http://127.0.0.1:8000/ingest` after starting
+the server and before the first chat to populate the local ChromaDB collection.
 
 The ingest command reports documents that fail or produce no text and exits
 unsuccessfully if any need attention. For scanned PDFs, create a searchable
@@ -156,6 +163,18 @@ curl -X POST http://127.0.0.1:8000/chat \
 The response is in Hindi because the question uses Devanagari. To select Hindi
 for an English or Romanized Hinglish query, set `"response_language":"Hindi"`.
 
+### Short demo script
+
+The repository does not include a demo video or slide deck; use this short
+script when recording or presenting:
+
+1. Ask in English: **“Am I eligible for PM SVANidhi?”**
+2. Show that the answer separates stored documents from newly retrieved
+   government information and provides clickable official source links.
+3. Ask the same question in Hindi: **“क्या मैं पीएम स्वनिधि योजना के लिए पात्र हूँ?”**
+4. Point out that the response is in Hindi and official-source links remain
+   available below it.
+
 Example response:
 
 ```json
@@ -205,6 +224,7 @@ were provided or extracted from the message.
 | `IBM_PROJECT_ID` | — | watsonx.ai project ID |
 | `IBM_REGION` | `us-south` | watsonx.ai deployment region |
 | `IBM_MODEL_ID` | `ibm/granite-4-h-small` | Chat model ID |
+| `TAVILY_API_KEY` | — | Tavily API key for live official-site search |
 | `PORT` | `8000` | HTTP port when started with `python -m app.main` |
 | `CORS_ORIGINS` | empty | Comma-separated allowed origins for a separate frontend |
 
@@ -217,6 +237,9 @@ Configure `CORS_ORIGINS` only when a frontend is hosted on another origin. Keep
 - **Chat reports an IBM error:** check `/health`, then run
   `python -m app.check_granite`. Confirm the API key, project ID, region, model
   availability, and account limits.
+- **No current official links appear:** confirm `TAVILY_API_KEY` is set in
+  `backend/.env`; live search is used for scheme questions needing current
+  details or when an official source is requested.
 - **A PDF is skipped for having no text:** create a searchable `.ocr.pdf` copy
   with OCRmyPDF and the right language data, rerun `python -m app.ingest`, then
   call `POST /ingest` to update ChromaDB.

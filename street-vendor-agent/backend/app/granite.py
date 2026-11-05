@@ -122,7 +122,7 @@ def _request_chat(messages: list[dict[str, str]], max_tokens: int) -> str:
         response = requests.post(
             CHAT_URL,
             headers={
-                "Authorization": f"******",
+                "Authorization": f"Bearer {token}",
                 "Content-Type": "application/json",
                 "Accept": "application/json",
             },
@@ -134,7 +134,7 @@ def _request_chat(messages: list[dict[str, str]], max_tokens: int) -> str:
             response = requests.post(
                 CHAT_URL,
                 headers={
-                    "Authorization": f"******",
+                    "Authorization": f"Bearer {token}",
                     "Content-Type": "application/json",
                     "Accept": "application/json",
                 },
@@ -257,54 +257,7 @@ def generate_answer(
         {"role": "system", "content": system},
         {"role": "user", "content": user},
     ]
-    payload = {
-        "model_id": IBM_MODEL_ID,
-        "project_id": IBM_PROJECT_ID,
-        "messages": messages,
-        "max_tokens": max_tokens,
-        "temperature": 0,
-    }
-
-    token = get_iam_token()
-    try:
-        response = requests.post(
-            CHAT_URL,
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            },
-            json=payload,
-            timeout=90,
-        )
-        if response.status_code == 401:
-            token = get_iam_token(force_refresh=True)
-            response = requests.post(
-                CHAT_URL,
-                headers={
-                    "Authorization": f"Bearer {token}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json",
-                },
-                json=payload,
-                timeout=90,
-            )
-    except requests.RequestException as error:
-        raise GraniteError(f"Cannot reach watsonx.ai at {WATSONX_URL}: {error}") from error
-
-    if response.status_code != 200:
-        raise GraniteError(
-            f"watsonx.ai returned HTTP {response.status_code} for model "
-            f"'{IBM_MODEL_ID}' in region '{IBM_REGION}': {_ibm_error_text(response)}. "
-            "Run `python -m app.check_granite` to see which models your region serves."
-        )
-
-    choices = response.json().get("choices") or []
-    if choices:
-        answer = (choices[0].get("message", {}).get("content") or "").strip()
-        if answer:
-            return answer
-    raise GraniteError("watsonx.ai returned an empty answer.")
+    return _request_chat(messages, max_tokens)
 
 
 def test_granite() -> str:
