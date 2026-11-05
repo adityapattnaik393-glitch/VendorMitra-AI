@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch
 
 from app.agent import _extract_vendor_profile, _infer_task, ask_vendor_mitra
+from app.granite import GraniteError
 
 
 class ResponseLanguageTests(unittest.TestCase):
@@ -194,6 +195,47 @@ class LiveGovernmentRetrievalTests(unittest.TestCase):
         ask_vendor_mitra("What is a government scheme?")
 
         search.assert_not_called()
+
+    @patch("app.agent.search_official_sources")
+    @patch("app.agent.needs_live_search", return_value=False)
+    @patch("app.agent.generate_answer", return_value="Scheme answer")
+    @patch("app.agent.retrieve_context", return_value=[])
+    def test_explicit_request_for_official_reference_triggers_search_even_if_granite_says_no(
+        self, _retrieve, _generate, _decision, search
+    ):
+        search.return_value = {"results": [], "error": "No official content found."}
+
+        ask_vendor_mitra("What is PM SVANidhi? Please provide the official source link.")
+
+        search.assert_called_once()
+
+    @patch("app.agent.search_official_sources")
+    @patch("app.agent.needs_live_search", side_effect=GraniteError("classifier unavailable"))
+    @patch("app.agent.generate_answer", return_value="Scheme answer")
+    @patch("app.agent.retrieve_context", return_value=[])
+    def test_classifier_failure_still_attempts_live_retrieval(
+        self, _retrieve, _generate, _decision, search
+    ):
+        search.return_value = {
+            "results": [
+                {
+                    "content": "Current details",
+                    "metadata": {
+                        "source_type": "official_web",
+                        "source_url": "https://myscheme.gov.in/",
+                        "document_title": "myScheme",
+                        "retrieval_date": "2026-11-05T05:00:00Z",
+                        "last_verified_date": "2026-11-05",
+                    },
+                }
+            ],
+            "error": None,
+        }
+
+        result = ask_vendor_mitra("What is the current PM SVANidhi eligibility?")
+
+        search.assert_called_once()
+        self.assertIn("https://myscheme.gov.in/", [item["url"] for item in result["sources"] if isinstance(item, dict)])
 
 
 if __name__ == "__main__":

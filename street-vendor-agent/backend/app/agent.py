@@ -54,6 +54,15 @@ _SCHEME_INTENT = re.compile(
     r"अनुदान|सहायता|पात्रता|आवेदन|आखिरी\s+तारीख|अंतिम\s+तारीख|ब्याज\s+दर",
     re.IGNORECASE,
 )
+_LIVE_REFERENCE_INTENT = re.compile(
+    r"\b(?:current|currently|latest|recent|today|now|updated|new\s+rules|"
+    r"eligibility|eligible|apply|application|deadline|last\s+date|amount|"
+    r"interest\s+rate|benefit|subsidy|source|reference|citation|link|"
+    r"official\s+(?:website|source))\b|अभी|वर्तमान|नवीनतम|आज|ताज़ा|ताजा|"
+    r"पात्रता|पात्र|आवेदन|आखिरी\s+तारीख|अंतिम\s+तारीख|राशि|ब्याज|लाभ|"
+    r"स्रोत|लिंक|आधिकारिक\s+(?:वेबसाइट|स्रोत)",
+    re.IGNORECASE,
+)
 
 
 def _infer_task(question: str, task: str) -> str:
@@ -150,13 +159,17 @@ def ask_vendor_mitra(
         "promotional_materials",
     }:
         try:
-            if needs_live_search(question, stored_context):
-                online_result = search_official_sources(question)
-                online_results = online_result["results"]
-                online_error = online_result["error"]
-        except GraniteError:
-            logger.warning("Granite live-search decision failed; using stored sources.")
-            online_error = "Granite could not determine whether live verification was needed."
+            granite_decision = needs_live_search(question, stored_context)
+        except GraniteError as error:
+            logger.warning(
+                "Granite live-search decision failed; trying official-site search: %s",
+                error,
+            )
+            granite_decision = True
+        if granite_decision or _LIVE_REFERENCE_INTENT.search(question):
+            online_result = search_official_sources(question)
+            online_results = online_result["results"]
+            online_error = online_result["error"]
 
     context_sections = [f"[STORED PDF INFORMATION]\n{stored_context}"]
     for item in online_results:
