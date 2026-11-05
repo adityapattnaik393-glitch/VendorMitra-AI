@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch
 
-from app.granite import generate_answer
+from app.granite import generate_answer, needs_live_search
 
 
 class GraniteRequestTests(unittest.TestCase):
@@ -44,6 +44,19 @@ class GraniteRequestTests(unittest.TestCase):
             post.call_args_list[1].kwargs["headers"]["Authorization"],
             "Bearer fresh-token",
         )
+
+
+    @patch("app.granite._request_chat", return_value='{"needs_live_search": false}')
+    def test_granite_classifies_stored_scheme_information(self, request):
+        self.assertFalse(needs_live_search("What is this scheme?", "PDF details"))
+        self.assertIn(
+            "government-scheme question",
+            request.call_args.args[0][0]["content"],
+        )
+
+    @patch("app.granite._request_chat", return_value="not valid JSON")
+    def test_unclear_classification_defaults_to_live_verification(self, _request):
+        self.assertTrue(needs_live_search("What are current rules?", "PDF details"))
 
 
 if __name__ == "__main__":

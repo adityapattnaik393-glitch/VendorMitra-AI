@@ -499,9 +499,40 @@
         label.textContent = "Sources";
         sourceList.append(label);
         for (const source of sources) {
-          const item = document.createElement("span");
+          if (typeof source === "string") {
+            const item = document.createElement("span");
+            item.className = "source";
+            item.textContent = source;
+            sourceList.append(item);
+            continue;
+          }
+          if (!source || source.source_type !== "official_web") continue;
+          let url;
+          try {
+            url = new URL(source.url);
+          } catch {
+            continue;
+          }
+          const officialDomains = [
+            "myscheme.gov.in",
+            "pmsvanidhi.mohua.gov.in",
+            "udyamregistration.gov.in",
+            "mudra.org.in",
+            "mohua.gov.in",
+          ];
+          if (
+            url.protocol !== "https:" ||
+            !officialDomains.some((domain) => (
+              url.hostname === domain || url.hostname.endsWith(`.${domain}`)
+            ))
+          ) continue;
+          const item = document.createElement("a");
           item.className = "source";
-          item.textContent = source;
+          item.href = url.href;
+          item.target = "_blank";
+          item.rel = "noopener noreferrer";
+          item.textContent = `${source.title || url.hostname} · Retrieved ${source.retrieval_date || "date unavailable"}`;
+          item.title = `Last verified ${source.last_verified_date || "date unavailable"}`;
           sourceList.append(item);
         }
         content.append(sourceList);

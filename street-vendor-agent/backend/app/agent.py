@@ -1,8 +1,11 @@
+import logging
 import re
 
 from app.rag import retrieve_context
-from app.granite import generate_answer
+from app.granite import GraniteError, generate_answer, needs_live_search
+from app.web_search import search_official_sources
 
+logger = logging.getLogger(__name__)
 
 _HINDI_SCRIPT = re.compile(r"[\u0900-\u097f]")
 _PROFILE_PATTERNS = (
@@ -43,6 +46,14 @@ _PROMOTION_INTENT = re.compile(
     re.IGNORECASE,
 )
 _HINDI_PROMOTION_INTENT = re.compile(r"प्रचार|विज्ञापन|व्हाट्सएप|पोस्टर|बैनर")
+_SCHEME_INTENT = re.compile(
+    r"\b(?:government|govt|central|state|scheme|yojana|myscheme|"
+    r"pm\s*svanidhi|pmsvanidhi|svanidhi|mudra|udyam|benefit|subsidy|loan|"
+    r"grant|eligibility|eligible|application|deadline|last\s+date|interest\s+rate|"
+    r"financial\s+assistance)\b|योजना|सरकार|सरकारी|लाभ|सब्सिडी|लोन|कर्ज|ऋण|"
+    r"अनुदान|सहायता|पात्रता|आवेदन|आखिरी\s+तारीख|अंतिम\s+तारीख|ब्याज\s+दर",
+    re.IGNORECASE,
+)
 
 
 def _infer_task(question: str, task: str) -> str:
@@ -116,7 +127,7 @@ def ask_vendor_mitra(
 
     results = retrieve_context(retrieval_query)
 
-    context = (
+    stored_context = (
         "\n\n".join(
             f"Source: {item['source']}\n"
             + (
@@ -131,25 +142,78 @@ def ask_vendor_mitra(
         else "No relevant verified source material is currently indexed."
     )
 
+    online_results = []
+    online_error = None
+    effective_task = _infer_task(question, task)
+    if _SCHEME_INTENT.search(question) and effective_task not in {
+        "business_profile",
+        "promotional_materials",
+    }:
+        try:
+            if needs_live_search(question, stored_context):
+                online_result = search_official_sources(question)
+                online_results = online_result["results"]
+                online_error = online_result["error"]
+        except GraniteError:
+            logger.warning("Granite live-search decision failed; using stored sources.")
+            online_error = "Granite could not determine whether live verification was needed."
+
+    context_sections = [f"[STORED PDF INFORMATION]\n{stored_context}"]
+    for item in online_results:
+        metadata = item["metadata"]
+        context_sections.append(
+            "[NEWLY RETRIEVED OFFICIAL WEBSITE INFORMATION]\n"
+            f"Document title: {metadata['document_title']}\n"
+            f"Source URL: {metadata['source_url']}\n"
+            f"Retrieval date: {metadata['retrieval_date']}\n"
+            f"Last verified date: {metadata['last_verified_date']}\n"
+            f"Content: {item['content']}"
+        )
+    if online_error:
+        context_sections.append(
+            "[ONLINE VERIFICATION STATUS]\n"
+            "Official online information could not be retrieved or verified for this "
+            "question. Do not imply that current details were checked."
+        )
+    context = "\n\n".join(context_sections)
+
     answer = generate_answer(
         question=question,
         context=context,
-        task=_infer_task(question, task),
+        task=effective_task,
         vendor_context=vendor_context,
         preferred_language=_response_language(question, preferred_language),
     )
+    if online_error:
+        verification_note = (
+            "\n\nऑनलाइन पुष्टि: अभी आधिकारिक सरकारी वेबसाइटों पर इस जानकारी की पुष्टि "
+            "नहीं हो सकी।"
+            if _response_language(question, preferred_language) == "Hindi"
+            else "\n\nOnline verification: I couldn't verify this information on official "
+            "government websites just now."
+        )
+        answer += verification_note
 
+    source_labels = [
+        (
+            f"Stored document — {item['source']} — {item['source_date']}"
+            if item.get("source_date")
+            else f"Stored document — {item['source']}"
+        )
+        for item in results
+    ]
+    online_sources = [
+        {
+            "source_type": item["metadata"]["source_type"],
+            "title": item["metadata"]["document_title"],
+            "url": item["metadata"]["source_url"],
+            "retrieval_date": item["metadata"]["retrieval_date"],
+            "last_verified_date": item["metadata"]["last_verified_date"],
+        }
+        for item in online_results
+    ]
     return {
         "answer": answer,
         "vendor_profile": vendor_profile,
-        "sources": list(
-            dict.fromkeys(
-                (
-                    f"{item['source']} — {item['source_date']}"
-                    if item.get("source_date")
-                    else item["source"]
-                )
-                for item in results
-            )
-        ),
+        "sources": list(dict.fromkeys(source_labels)) + online_sources,
     }

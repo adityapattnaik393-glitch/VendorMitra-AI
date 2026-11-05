@@ -2,14 +2,14 @@
 
 ## Overview
 
-VendorMitra is a single-pass retrieval-augmented generation (RAG) chat
-application. The FastAPI backend serves the browser UI and API, retrieves
-relevant text from a local ChromaDB collection, and asks IBM Granite on
-watsonx.ai to compose a grounded response.
+VendorMitra is a retrieval-augmented generation (RAG) chat application. The
+FastAPI backend serves the browser UI and API, retrieves relevant text from a
+local ChromaDB collection, and asks IBM Granite on watsonx.ai to compose a
+grounded response. For scheme-related questions, Granite can request a live
+search of allowlisted official government websites through Tavily.
 
-This is not a multi-step autonomous agent: it does not plan tasks, browse the
-web, or invoke external business tools. The selected task only provides prompt
-guidance.
+This is not a general-purpose browsing agent: live search is limited to
+scheme-related questions and the configured official government domains.
 
 ## System diagram
 
@@ -22,8 +22,10 @@ Browser
        └─ app.agent
             ├─ infer business-profile/promotion intent and extract first-message details
             ├─ app.rag: multilingual embedding → ChromaDB top-3 passages
-            └─ app.granite: prompt + passages → IBM watsonx.ai chat endpoint
-                  └─ answer + unique source filenames → Browser
+            ├─ app.granite: decide whether a scheme question needs live verification
+            ├─ app.web_search: Tavily search → allowlisted official page content
+            └─ app.granite: labeled PDF + live context → IBM watsonx.ai chat endpoint
+                  └─ answer + PDF labels + clickable official links → Browser
 
 Source PDFs → app.ingest → Markdown → POST /ingest
                                       └─ chunks + embeddings → ChromaDB
@@ -38,12 +40,21 @@ Source PDFs → app.ingest → Markdown → POST /ingest
 3. `app.rag.retrieve_context` embeds the query with
    `paraphrase-multilingual-MiniLM-L12-v2` and asks ChromaDB for up to three
    matching chunks.
-4. `app.agent` builds the context and calls `app.granite.generate_answer`.
-5. A question containing Devanagari characters selects Hindi output regardless
+4. For a scheme-related question, `app.granite.needs_live_search` decides
+   whether current official information is needed. If so,
+   `app.web_search.search_official_sources` asks Tavily to search the
+   allowlisted myScheme, PM SVANidhi, Udyam, MUDRA, and MoHUA domains. Results
+   from non-allowlisted URLs are discarded.
+5. `app.agent` labels stored PDF passages separately from newly retrieved
+   official website content and calls `app.granite.generate_answer`. Failed
+   online verification falls back to the PDF context and is disclosed in the
+   answer.
+6. A question containing Devanagari characters selects Hindi output regardless
    of the UI selection. Otherwise, the chosen response language is passed into
    the system prompt. Hindi output is requested in Devanagari script.
-6. The API returns the answer and de-duplicated source filenames.
-7. Business-profile and promotion tasks generate vendor-facing copy from vendor
+7. The API returns PDF source labels and official web links with document
+   title, retrieval date, and last-verified date metadata.
+8. Business-profile and promotion tasks generate vendor-facing copy from vendor
    details; those creative-writing tasks do not depend on a matching PDF. The
    API returns extracted profile fields so the UI can offer them for saving.
 
@@ -105,10 +116,11 @@ verification.
 |---|---|
 | `backend/app/main.py` | FastAPI routes, request validation, CORS configuration, server entry point |
 | `backend/app/chat.html` | Responsive bilingual chat UI |
-| `backend/app/agent.py` | Task intent inference, first-message profile extraction, RAG-to-answer orchestration and Hindi-script detection |
+| `backend/app/agent.py` | Task intent inference, profile extraction, PDF/live retrieval orchestration and Hindi-script detection |
 | `backend/app/rag.py` | Markdown chunking, dated source metadata, embeddings, ChromaDB indexing and retrieval |
+| `backend/app/web_search.py` | Tavily requests, official-domain filtering and online source metadata |
 | `backend/app/ingest.py` | Convert source PDFs to Markdown and report extraction failures |
-| `backend/app/granite.py` | IBM IAM token handling and watsonx.ai chat requests |
+| `backend/app/granite.py` | IBM IAM token handling, live-search decisions and watsonx.ai chat requests |
 | `backend/app/check_granite.py` | Credential, model-availability, and live-call preflight |
 | `backend/tests/` | Unit tests for profile extraction, response language, dated sources, and Granite requests |
 
@@ -149,6 +161,7 @@ comma-separated allowlist.
 | `IBM_PROJECT_ID` | unset | watsonx.ai project |
 | `IBM_REGION` | `us-south` | watsonx.ai region |
 | `IBM_MODEL_ID` | `ibm/granite-4-h-small` | Chat model |
+| `TAVILY_API_KEY` | unset | Enables live official-site search for scheme questions |
 | `PORT` | `8000` | HTTP listen port for the module entry point |
 | `CORS_ORIGINS` | empty | Allowed origins for a separately hosted browser client |
 
@@ -157,8 +170,10 @@ comma-separated allowlist.
 -   Policy answers depend on extracted and indexed source content; an answer does
   not guarantee that every source PDF was parsed successfully. Profile and
   promotion copy is generated from user details rather than government sources.
-- Retrieval returns at most three chunks and does not browse live official
-  websites. The PM SVANidhi dataset is historical (as of 2024-01-30).
+- PDF retrieval returns at most three chunks. Live website search requires a
+  configured Tavily API key and a reachable search service; if unavailable,
+  the assistant falls back to stored PDFs and says it could not verify current
+  details online. The PM SVANidhi dataset is historical (as of 2024-01-30).
 - Hindi automatic language selection detects Devanagari text. Romanized Hindi
   follows the language selected in the UI.
 - Scheme rules and other time-sensitive information should be confirmed with
