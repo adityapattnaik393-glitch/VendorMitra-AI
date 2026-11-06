@@ -17,13 +17,6 @@ Built with **IBM Granite on watsonx.ai**, a **RAG pipeline (ChromaDB)**, and **l
 
 ---
 
-## Screenshots
-
-| Scheme answer with official links | Hindi response | Business profile / promo copy |
-|---|---|---|
-| ![Scheme answer](docs/screenshots/scheme-answer.png) | ![Hindi answer](docs/screenshots/hindi-answer.png) | ![Profile and promo](docs/screenshots/profile-promo.png) |
-
----
 
 ## The problem
 
