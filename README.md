@@ -13,6 +13,7 @@ Built with **IBM Granite on watsonx.ai**, a **RAG pipeline (ChromaDB)**, and **l
 - `क्या मैं पीएम स्वनिधि योजना के लिए पात्र हूँ?`
 - `How can I accept UPI payments at my stall?`
 - `I sell fruit in Pune Camp. Write a business profile for my stall.`
+- Tap the **microphone** button and speak your question in Hindi or English. The answer is read back to you aloud.
 - Choose **Create promotional materials** for a WhatsApp message, signboard line and QR-poster copy.
 
 ---
@@ -43,7 +44,8 @@ Built for **Problem Statement 29: Street Vendor Digitalization Agent** (IBM Gran
 | Real-time policies and MSME schemes | ✅ | Live search of allowlisted official sites, with links and dates |
 | Access to credit | ✅ | PM SVANidhi, MUDRA and Udyam guidance |
 | Pricing tips, online listing platforms | 🟡 | Practical guides; no live market prices |
-| Local language | 🟡 | English and Hindi today; Marathi and more planned |
+| Local language | 🟡 | English and Hindi (text and voice); Marathi and more planned |
+| Voice access for low-literacy users | ✅ | Hindi and English voice input (speech-to-text) and spoken answers (text-to-speech) |
 | Geolocation of business data, consumer behaviour insights | 🔜 | Planned (see Roadmap) |
 
 ## Features
@@ -53,14 +55,16 @@ Built for **Problem Statement 29: Street Vendor Digitalization Agent** (IBM Gran
 - **Transparent sources:** stored-document information is labelled separately from live website information, with clickable official links and retrieval dates.
 - **Safe fallback:** if live search fails, the assistant uses stored documents and says it could not verify online.
 - **Bilingual:** replies in Hindi automatically when the question uses Devanagari; English/Hindi selector in the UI.
+- **Voice in, voice out (Hindi and English):** tap the microphone and speak instead of typing. Speech is recognised in Hindi (`hi-IN`) or Indian English (`en-IN`) based on the selected language, and the transcript appears in the message box so the vendor can check or edit it before sending. The assistant's answer is then spoken back in the same language, so vendors who find reading difficult can use the whole chat by voice.
 - **Digital presence tools:** business profiles, WhatsApp messages, signboard lines, QR-poster copy, plus UPI, local-listing and customer-engagement guidance.
 - **Personalization:** a saved vendor profile (name, products, location) tailors the answers.
-- **Private by design:** chat history and profile stay in the browser (localStorage); location is never sent to a third-party service.
+- **Private by design:** chat history and profile stay in the browser (localStorage); location is never sent to a third-party service. Only the transcribed text of a voice message reaches the backend.
 
 ## How it works
 
 ```mermaid
 flowchart LR
+    M[🎤 Voice input<br/>Hindi / English] -->|speech-to-text| U
     U[Vendor chat UI<br/>English / हिंदी] -->|POST /chat| API[FastAPI backend]
     API --> A[Agent orchestrator]
     A --> R[RAG retrieval<br/>MiniLM embeddings → ChromaDB top-3]
@@ -70,16 +74,17 @@ flowchart LR
     W --> G
     D -->|no| G
     G --> U
+    U -->|text-to-speech| V[🔊 Spoken answer<br/>Hindi / English]
     P[Source PDFs] --> I[Docling / pypdf → Markdown]
     I --> S[LangChain splitter<br/>800 / 120] --> C[(ChromaDB)]
     C --> R
 ```
 
-1. The browser sends the question, language and vendor profile to `POST /chat`.
+1. The vendor types or speaks a question. Spoken input is converted to text in the browser, and the browser sends the question, language and vendor profile to `POST /chat`.
 2. The agent retrieves the top three matching passages from ChromaDB.
 3. For scheme questions, Granite decides whether live verification is needed. If so, Tavily searches the allowlisted official domains.
 4. Granite writes a grounded answer from the labelled PDF and live context, in the right language.
-5. The API returns the answer, source labels and official links.
+5. The API returns the answer, source labels and official links. The chat shows the answer and reads it aloud in the same language.
 
 More detail: [`street-vendor-agent/docs/architecture.md`](street-vendor-agent/docs/architecture.md)
 
@@ -93,7 +98,7 @@ More detail: [`street-vendor-agent/docs/architecture.md`](street-vendor-agent/do
 | Live search | Tavily Search API (official-domain allowlist) |
 | Document ingestion | Docling (optional) / pypdf, OCR support via `.ocr.pdf` |
 | Backend | Python 3.12, FastAPI, Uvicorn |
-| Frontend | HTML/JavaScript chat UI, browser localStorage |
+| Frontend | HTML/JavaScript chat UI, browser localStorage, Hindi/English voice input and spoken answers |
 | Dev tools | IBM Bob, GitHub |
 | Hosting | Render |
 
@@ -196,16 +201,16 @@ street-vendor-agent/
 - The PM SVANidhi dataset is historical (as of 2024-01-30), not live data.
 - Pricing and listing guidance is general; it does not use live market prices.
 - Romanized Hindi (Hinglish) follows the language chosen in the UI; automatic detection covers Devanagari only.
+- Voice input needs microphone permission and a browser that supports speech recognition (Chrome and Edge work best). Recognition accuracy depends on the device, accent and background noise, and the audio is processed by the browser's speech service, not by VendorMitra's backend. How natural the spoken answers sound depends on the Hindi and English voices available on the vendor's device.
 - Scheme rules change. Always confirm eligibility, fees and deadlines on the official website.
 
 ## Roadmap
 
-- **More languages and voice:** Marathi, Tamil, Bengali, and Hindi voice input/output for low-literacy users.
+- **More languages for voice and text:** Marathi, Tamil, Bengali and other regional languages, building on today's Hindi and English voice input and spoken answers, for low-literacy users.
 - **Geolocation insights:** use the vendor's area for nearby markets, listing options and local advice.
 - **WhatsApp delivery:** reach vendors where they already are.
 - **Application assistance:** step-by-step help for PM SVANidhi, MUDRA and Udyam, with eligibility matching and deadline reminders.
 - **Digital commerce integration:** UPI and ONDC onboarding.
-- **IBM Cloud deployment and governance:** run on IBM Cloud Code Engine and monitor answer quality with watsonx.governance.
 
 ## Tests
 
